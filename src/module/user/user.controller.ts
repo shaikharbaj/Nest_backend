@@ -5,6 +5,8 @@ import { createUserDto } from './dto/createuser.dto';
 import { loginuserDto } from './dto/loginuser.dto';
 import { JwtGuard } from './guards/jwt.guards';
 import { RefreshJWTGuard } from './guards/refreshtoken.guards';
+import { Request } from 'express';
+import { Auth } from './dto/authdto';
 
 @Controller('user')
 export class UserController {
@@ -20,9 +22,9 @@ export class UserController {
       return await this.userservice.loginuser(data);
     }
     @UseGuards(JwtGuard)
-    @Get(":id")
-    async getuserprofile(@Param("id") id:number){
-        return await this.userservice.getuserprofile(id)
+    @Get("loaduser")
+    async getuserprofile(@Auth() auth:any){
+        return await this.userservice.getuserprofile(auth)
     }
 
     @UseGuards(RefreshJWTGuard)

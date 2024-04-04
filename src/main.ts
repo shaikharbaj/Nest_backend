@@ -1,6 +1,7 @@
-import { NestFactory } from '@nestjs/core';
+import { HttpAdapterHost, NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger } from '@nestjs/common';
+import { AppExceptionFilter } from './exceptions/app.exceptionfilter';
 async function bootstrap() {
   const logger = new Logger();
   const app = await NestFactory.create(AppModule);
@@ -10,8 +11,9 @@ async function bootstrap() {
     credentials: true,
     methods: ['GET', 'PUT', 'PATCH', 'POST', 'DELETE'],
   });
+  const httpAdapter = app.get(HttpAdapterHost);
   // app.useGlobalInterceptors(new TransformInterceptor());
-  // app.useGlobalFilters(new AppExceptionFilter(httpAdapter));
+  app.useGlobalFilters(new AppExceptionFilter(httpAdapter));
   // await app.register(multipart, {
   //   throwFileSizeLimit: true,
   //   limits: {

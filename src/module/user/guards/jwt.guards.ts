@@ -14,7 +14,6 @@ export class JwtGuard implements CanActivate {
 
         try {
             const payload = await jwt.verify(token, "ARBAJ");
-            console.log(payload);
             request.user = payload;
         } catch (error) {
             throw new UnauthorizedException();
