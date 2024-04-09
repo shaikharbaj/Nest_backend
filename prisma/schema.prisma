@@ -14,8 +14,22 @@ datasource db {
 }
 
 model User {
-  id       Int     @id @default(autoincrement())
-  name     String?
-  email    String  @unique
-  password String
+  id               Int              @id @default(autoincrement())
+  name             String?
+  avatar           String?
+  email            String           @unique
+  password         String
+  user_information userInformation?
+}
+
+model userInformation {
+  id            Int       @id @default(autoincrement())
+  data_of_birth DateTime? @db.Date()
+  phone_number  String?   @db.VarChar(25)
+  street        String?
+  city          String?
+  state         String?
+  zipcode       String?
+  userId        Int       @unique
+  user          User      @relation(fields: [userId], references: [id])
 }

@@ -2,11 +2,13 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import {UserModule,PrismaModule,AuthModule} from './module/index'
-
+import { AwsModule } from './module/aws/aws.module';
+import { ConfigModule } from '@nestjs/config';
+import { CloudinaryService } from './cloudinary.service';
 
 @Module({
-  imports: [UserModule,PrismaModule, AuthModule],
+  imports: [ConfigModule.forRoot({isGlobal:true}),UserModule,PrismaModule, AuthModule],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService,CloudinaryService],
 })
 export class AppModule {}
