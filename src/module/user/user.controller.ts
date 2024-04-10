@@ -36,8 +36,7 @@ export class UserController {
   @Post('/create_user')
   @UseInterceptors(FileInterceptor('file'))
   async createuser(@Body() data: createUserDto,@UploadedFile(FileValidationPipe) file: Express.Multer.File) {
-    return 'hiii'
-    // return await this.userservice.createuser(data, file);
+    return await this.userservice.createuser(data, file);
   }
 
   @Post('/login_user')

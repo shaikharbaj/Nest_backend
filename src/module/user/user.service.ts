@@ -98,6 +98,7 @@ export class UserService {
       const payload = {
         userId: user.id,
         email: user.email,
+        name: user.name
       };
 
       const token = await this.generateToken(payload, { expiresIn: '10h' });
@@ -163,7 +164,6 @@ export class UserService {
         },
       },
     });
-    console.log(file);
     //check.......
     if (check) {
       throw new ConflictException('user already exist with this email id');
@@ -249,22 +249,40 @@ export class UserService {
 
     if (checkuserinformationexist) {
       user_information = await this.prisma.userInformation.update({
+        select: {
+          id: true,
+          data_of_birth: true,
+          state: true,
+          street: true,
+          city: true,
+          zipcode: true,
+          phone_number: true
+        },
         where: {
           id: Number(checkuserinformationexist.id),
         },
         data: {
           ...userInformationPayload,
-        },
+        }
       });
     } else {
       user_information = await this.prisma.userInformation.create({
         data: {
           ...userInformationPayload,
         },
+        select: {
+          id: true,
+          data_of_birth: true,
+          state: true,
+          street: true,
+          city: true,
+          zipcode: true,
+          phone_number: true
+        }
       });
     }
 
-    const payload: any = { ...updateduserdata, user_information: { ...userInformationPayload } };
+    const payload: any = { ...updateduserdata, user_information: { ...user_information } };
     return payload;
   }
 }
