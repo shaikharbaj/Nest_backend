@@ -9,17 +9,17 @@ import { createUserDto } from './dto/createuser.dto';
 import * as bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
 import { loginuserDto } from './dto/loginuser.dto';
-import { Request } from 'express';
-import { S3Client } from '@aws-sdk/client-s3';
-import { ConfigService } from '@nestjs/config';
 import { CloudinaryService } from 'src/cloudinary.service';
 import { updateuserdto } from './dto/updateuserdto';
+import { PaginateFunction, paginator } from '../prisma/paginator';
+
+const paginate: PaginateFunction = paginator({ perPage: 10 });
 @Injectable()
 export class UserService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly cloudinary: CloudinaryService,
-  ) { }
+  ) {}
 
   public async hashpassword(password: string) {
     return await bcrypt.hash(password, 10);
@@ -98,7 +98,7 @@ export class UserService {
       const payload = {
         userId: user.id,
         email: user.email,
-        name: user.name
+        name: user.name,
       };
 
       const token = await this.generateToken(payload, { expiresIn: '10h' });
@@ -256,14 +256,14 @@ export class UserService {
           street: true,
           city: true,
           zipcode: true,
-          phone_number: true
+          phone_number: true,
         },
         where: {
           id: Number(checkuserinformationexist.id),
         },
         data: {
           ...userInformationPayload,
-        }
+        },
       });
     } else {
       user_information = await this.prisma.userInformation.create({
@@ -277,12 +277,87 @@ export class UserService {
           street: true,
           city: true,
           zipcode: true,
-          phone_number: true
-        }
+          phone_number: true,
+        },
       });
     }
 
-    const payload: any = { ...updateduserdata, user_information: { ...user_information } };
+    const payload: any = {
+      ...updateduserdata,
+      user_information: { ...user_information },
+    };
     return payload;
+  }
+
+  async findManywithPagination(select: {}, where: any, page: number = 1) {
+    return await paginate(
+      this.prisma.user,
+      {
+        select: select,
+        where:{...where},
+      },
+      { page },
+    );
+  }
+  async getallusers(page: number, searchTerm: string) {
+    const select = {
+      id: true,
+      name: true,
+      email: true,
+      avatar: true,
+      user_information: {
+        select: {
+          id: true,
+          data_of_birth: true,
+          phone_number: true,
+          state: true,
+          street: true,
+          city: true,
+          zipcode: true,
+          userId: true,
+        },
+      },
+    };
+
+    let filter: any = {};
+    if (searchTerm) {
+      filter = {
+        OR: [
+            { name: { contains: searchTerm, mode: 'insensitive' } },
+            { email: { contains: searchTerm, mode: 'insensitive' } },
+            {
+                user_information: {
+                    OR: [
+                        { data_of_birth: { contains: searchTerm, mode: 'insensitive' } },
+                        // { phone_number: { contains: searchTerm, mode: 'insensitive' } },
+                        { street: { contains: searchTerm, mode: 'insensitive' } },
+                        { city: { contains: searchTerm, mode: 'insensitive' } },
+                        { state: { contains: searchTerm, mode: 'insensitive' } },
+                        // { zipcode: { contains: searchTerm, mode: 'insensitive' } }
+                    ]
+                }
+            }
+        ]
+    };
+    }
+    // return JSON.stringify(filter)
+    const where =  {
+      OR: [
+        { name: { contains: searchTerm, mode: 'insensitive' } },
+        { email: { contains: searchTerm, mode: 'insensitive' } },
+        {
+          user_information: {
+            OR: [
+              { phone_number: { contains: searchTerm, mode: 'insensitive' } },
+              { street: { contains: searchTerm, mode: 'insensitive' } },
+              { city: { contains: searchTerm, mode: 'insensitive' } },
+              { state: { contains: searchTerm, mode: 'insensitive' } },
+              { zipcode: { contains: searchTerm, mode: 'insensitive' } },
+            ]
+          }
+        }
+      ]
+    }
+    return await this.findManywithPagination(select, where, page);
   }
 }

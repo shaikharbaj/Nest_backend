@@ -13,6 +13,7 @@ import {
   MaxFileSizeValidator,
   FileTypeValidator,
   ValidationPipe,
+  Query,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { createUserDto } from './dto/createuser.dto';
@@ -27,12 +28,19 @@ import multer from 'multer';
 import path from 'path';
 import { FileValidationPipe } from 'src/exceptions/filetypeandsize';
 import { updateuserdto } from './dto/updateuserdto';
+
 @Controller('user')
 export class UserController {
   constructor(
     private readonly userservice: UserService,
   ) { }
 
+
+  @Get("/getallusers")
+  async getallusers(@Query() payload:any){
+        const {page,searchTerm}:{page:number,searchTerm:string}=payload
+        return await this.userservice.getallusers(page,searchTerm);
+  }
   @Post('/create_user')
   @UseInterceptors(FileInterceptor('file'))
   async createuser(@Body() data: createUserDto,@UploadedFile(FileValidationPipe) file: Express.Multer.File) {
