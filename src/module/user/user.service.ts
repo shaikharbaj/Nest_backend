@@ -12,13 +12,14 @@ import { loginuserDto } from './dto/loginuser.dto';
 import { CloudinaryService } from 'src/cloudinary.service';
 import { updateuserdto } from './dto/updateuserdto';
 import { PaginateFunction, paginator } from '../prisma/paginator';
-
+import { MailerService } from '@nestjs-modules/mailer';
 const paginate: PaginateFunction = paginator({ perPage: 10 });
 @Injectable()
 export class UserService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly cloudinary: CloudinaryService,
+    private readonly mailservice: MailerService,
   ) {}
 
   public async hashpassword(password: string) {
@@ -53,6 +54,15 @@ export class UserService {
     const { password, ...result } = user;
 
     return result;
+  }
+
+  public generateotp() {
+    var digits = '0123456789';
+    let OTP = '';
+    for (let i = 0; i < 6; i++) {
+      OTP += digits[Math.floor(Math.random() * 10)];
+    }
+    return OTP;
   }
 
   async findByEmail(email: string) {
@@ -294,7 +304,7 @@ export class UserService {
       this.prisma.user,
       {
         select: select,
-        where:{...where},
+        where: { ...where },
       },
       { page },
     );
@@ -341,7 +351,7 @@ export class UserService {
     // };
     // }
     // // return JSON.stringify(filter)
-    const where =  {
+    const where = {
       OR: [
         { name: { contains: searchTerm, mode: 'insensitive' } },
         { email: { contains: searchTerm, mode: 'insensitive' } },
@@ -353,11 +363,152 @@ export class UserService {
               { city: { contains: searchTerm, mode: 'insensitive' } },
               { state: { contains: searchTerm, mode: 'insensitive' } },
               { zipcode: { contains: searchTerm, mode: 'insensitive' } },
-            ]
-          }
-        }
-      ]
-    }
+            ],
+          },
+        },
+      ],
+    };
     return await this.findManywithPagination(select, where, page);
+  }
+
+  async forgotpassword(payload: any) {
+    //check user exist or not......
+    const checkuserexist = await this.prisma.user.findUnique({
+      where: {
+        email: payload.email,
+      },
+    });
+    if (!checkuserexist) {
+      throw new UnauthorizedException('user not found');
+    }
+    //create OTP SAVE IN DATABASE AND SEND EMAIL TO USER......
+    const OTP = this.generateotp();
+    //save OTP IN DATABASE AND SEND MAIL TO USER....
+    const check_OTP_EXIST = await this.prisma.oTP.findFirst({
+      where: {
+        user_id: Number(checkuserexist.id),
+      },
+    });
+
+    if (check_OTP_EXIST) {
+      await this.prisma.oTP.update({
+        where: {
+          user_id: Number(checkuserexist.id),
+        },
+        data: {
+          otp: Number(OTP),
+          isVerified: false,
+        },
+      });
+    } else {
+      await this.prisma.oTP.create({
+        data: {
+          otp: Number(OTP),
+          user_id: checkuserexist.id,
+          isVerified: false,
+        },
+      });
+    }
+    //send Email To User.......
+    await this.mailservice.sendMail({
+      from: '<arbaaj1147@gmail.com>',
+      to: 'shaikharbaj2001@gmail.com',
+      subject: `Reset password otp`,
+      html: `<p>Hello user reset password OTP is <b>${OTP}</b></p>`,
+    });
+    return 'OTP send successfully';
+  }
+
+  //verify OTP.......
+  async verifyOTP(email: any, otp: number) {
+    //check user exist or not.......
+    const checkuser = await this.prisma.user.findUnique({
+      where: {
+        email: email,
+      },
+    });
+    if (!checkuser) {
+      throw new UnauthorizedException('user not found');
+    }
+
+    //verify otp
+    const isVerified = await this.prisma.oTP.findUnique({
+      where: {
+        user_id: Number(checkuser.id),
+        otp: Number(otp),
+        isVerified: false,
+      },
+    });
+    if (!isVerified) {
+      throw new UnauthorizedException('Invalid OTP...');
+    }
+
+    //update isverified to true,,,
+    await this.prisma.oTP.update({
+      where: { id: Number(isVerified.id) },
+      data: {
+        isVerified: true,
+      },
+    });
+    return {
+      status: true,
+      message: 'OTP verified successfully',
+    };
+    //create passwordToken send back to user.............
+  }
+
+  async resetpassword(
+    otp: number,
+    email: string,
+    password: string,
+    confirmpassword: string,
+  ) {
+    // try {
+    //check user is present is present or not
+    const checkuser = await this.prisma.user.findUnique({
+      where: {
+        email: email,
+      },
+    });
+
+    if (!checkuser) {
+      throw new UnauthorizedException('Invalid user');
+    }
+
+    //check condition OTP is correcct and isVerified is true...
+    console.log(checkuser.id, otp);
+    const isVerified = await this.prisma.oTP.findUnique({
+      where: {
+        user_id: Number(checkuser.id),
+        otp: Number(otp),
+        isVerified: true,
+      },
+    });
+
+    if (isVerified) {
+      //compair password and confirmpassword
+      if (password === confirmpassword) {
+        //reset password
+        const hashedpassword = await this.hashpassword(password);
+        //update password....
+        await this.prisma.user.update({
+          where: {
+            id: Number(checkuser.id),
+          },
+          data: {
+            password: hashedpassword,
+          },
+        });
+        return { status: true, message: 'password reset successfully....!' };
+      } else {
+        throw new UnauthorizedException(
+          'password and confirmpassword does not match..',
+        );
+      }
+      //reset password...
+    } else {
+      throw new UnauthorizedException('Invalid OTP ! OTP is not verified');
+    }
+    // } catch (error) {}
   }
 }

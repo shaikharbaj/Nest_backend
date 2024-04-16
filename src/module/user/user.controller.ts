@@ -28,22 +28,27 @@ import multer from 'multer';
 import path from 'path';
 import { FileValidationPipe } from 'src/exceptions/filetypeandsize';
 import { updateuserdto } from './dto/updateuserdto';
+import { resetpasswordDto } from './dto/resetpassword.dto';
 
+type verifyOTPType = {
+  email: string;
+  otp: number;
+};
 @Controller('user')
 export class UserController {
-  constructor(
-    private readonly userservice: UserService,
-  ) { }
-
+  constructor(private readonly userservice: UserService) {}
 
   @Get()
   async getallusers(@Query() payload: any) {
-    const { page, searchTerm }: { page: number, searchTerm: string } = payload
+    const { page, searchTerm }: { page: number; searchTerm: string } = payload;
     return await this.userservice.getallusers(Number(page), searchTerm);
   }
   @Post('/create_user')
   @UseInterceptors(FileInterceptor('file'))
-  async createuser(@Body() data: createUserDto, @UploadedFile(FileValidationPipe) file: Express.Multer.File) {
+  async createuser(
+    @Body() data: createUserDto,
+    @UploadedFile(FileValidationPipe) file: Express.Multer.File,
+  ) {
     return await this.userservice.createuser(data, file);
   }
 
@@ -60,11 +65,36 @@ export class UserController {
   @UseGuards(JwtGuard)
   @Patch('updateprofile')
   @UseInterceptors(FileInterceptor('file'))
-  async updateProfile(@Auth() auth: any, @Body() data: updateuserdto, @UploadedFile(FileValidationPipe) file: Express.Multer.File) {
-    return await this.userservice.updateProfile(auth, data, file)
+  async updateProfile(
+    @Auth() auth: any,
+    @Body() data: updateuserdto,
+    @UploadedFile(FileValidationPipe) file: Express.Multer.File,
+  ) {
+    return await this.userservice.updateProfile(auth, data, file);
+  }
+
+  @Post('/forgot-password')
+  async forgotPassword(@Body() payload: any) {
+    return await this.userservice.forgotpassword(payload);
+  }
+
+  @Post('verify-otp')
+  async verifyOTP(@Body() payload: verifyOTPType) {
+    return await this.userservice.verifyOTP(payload.email, payload.otp);
+  }
+
+  @Post('/reset-password')
+  async resetPassword(@Body() payload: any) {
+    console.log(payload)
+    return await this.userservice.resetpassword(
+      payload.otp,
+      payload.email,
+      payload.password,
+      payload.confirmpassword,
+    );
   }
 
   @UseGuards(RefreshJWTGuard)
   @Post('refresh')
-  async refreshToken(@Req() req: Request) { }
+  async refreshToken(@Req() req: Request) {}
 }

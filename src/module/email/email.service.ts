@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
-
+import { EventEmitter2 } from '@nestjs/event-emitter';
 @Injectable()
 export class EmailService {
     constructor(private readonly mailerService: MailerService) { }
@@ -20,4 +20,6 @@ export class EmailService {
             throw error; // Rethrow the error for proper error handling
         }
     }
+
+
 }

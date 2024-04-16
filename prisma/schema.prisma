@@ -20,6 +20,7 @@ model User {
   email            String           @unique
   password         String
   user_information userInformation?
+  OTP              OTP?
 }
 
 model userInformation {
@@ -32,6 +33,15 @@ model userInformation {
   zipcode       String?
   userId        Int       @unique
   user          User      @relation(fields: [userId], references: [id])
+}
+
+model OTP {
+  id        Int      @id @default(autoincrement())
+  otp       Int
+  user_id   Int      @unique
+  isVerified Boolean @default(false)
+  user      User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
 }
 
 model JsonExample {
