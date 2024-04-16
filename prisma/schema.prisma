@@ -33,3 +33,9 @@ model userInformation {
   userId        Int       @unique
   user          User      @relation(fields: [userId], references: [id])
 }
+
+model JsonExample {
+  id         Int    @id @default(autoincrement())
+  name       String
+  attributes Json
+}
