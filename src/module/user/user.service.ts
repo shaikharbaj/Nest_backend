@@ -319,28 +319,28 @@ export class UserService {
       },
     };
 
-    let filter: any = {};
-    if (searchTerm) {
-      filter = {
-        OR: [
-            { name: { contains: searchTerm, mode: 'insensitive' } },
-            { email: { contains: searchTerm, mode: 'insensitive' } },
-            {
-                user_information: {
-                    OR: [
-                        { data_of_birth: { contains: searchTerm, mode: 'insensitive' } },
-                        // { phone_number: { contains: searchTerm, mode: 'insensitive' } },
-                        { street: { contains: searchTerm, mode: 'insensitive' } },
-                        { city: { contains: searchTerm, mode: 'insensitive' } },
-                        { state: { contains: searchTerm, mode: 'insensitive' } },
-                        // { zipcode: { contains: searchTerm, mode: 'insensitive' } }
-                    ]
-                }
-            }
-        ]
-    };
-    }
-    // return JSON.stringify(filter)
+    // let filter: any = {};
+    // if (searchTerm) {
+    //   filter = {
+    //     OR: [
+    //         { name: { contains: searchTerm, mode: 'insensitive' } },
+    //         { email: { contains: searchTerm, mode: 'insensitive' } },
+    //         {
+    //             user_information: {
+    //                 OR: [
+    //                     { data_of_birth: { contains: searchTerm, mode: 'insensitive' } },
+    //                     // { phone_number: { contains: searchTerm, mode: 'insensitive' } },
+    //                     { street: { contains: searchTerm, mode: 'insensitive' } },
+    //                     { city: { contains: searchTerm, mode: 'insensitive' } },
+    //                     { state: { contains: searchTerm, mode: 'insensitive' } },
+    //                     // { zipcode: { contains: searchTerm, mode: 'insensitive' } }
+    //                 ]
+    //             }
+    //         }
+    //     ]
+    // };
+    // }
+    // // return JSON.stringify(filter)
     const where =  {
       OR: [
         { name: { contains: searchTerm, mode: 'insensitive' } },

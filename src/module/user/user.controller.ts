@@ -36,14 +36,14 @@ export class UserController {
   ) { }
 
 
-  @Get("/getallusers")
-  async getallusers(@Query() payload:any){
-        const {page,searchTerm}:{page:number,searchTerm:string}=payload
-        return await this.userservice.getallusers(page,searchTerm);
+  @Get()
+  async getallusers(@Query() payload: any) {
+    const { page, searchTerm }: { page: number, searchTerm: string } = payload
+    return await this.userservice.getallusers(Number(page), searchTerm);
   }
   @Post('/create_user')
   @UseInterceptors(FileInterceptor('file'))
-  async createuser(@Body() data: createUserDto,@UploadedFile(FileValidationPipe) file: Express.Multer.File) {
+  async createuser(@Body() data: createUserDto, @UploadedFile(FileValidationPipe) file: Express.Multer.File) {
     return await this.userservice.createuser(data, file);
   }
 
