@@ -530,6 +530,11 @@ export class UserService {
         email: email,
       },
     });
+    if(!otp){
+      return response
+      .status(401)
+      .json({ success: false, message: 'Otp is required'});
+    }
     if (!checkuser) {
       return response
         .status(401)

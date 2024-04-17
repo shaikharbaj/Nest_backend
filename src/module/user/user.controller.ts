@@ -30,6 +30,8 @@ import path from 'path';
 import { FileValidationPipe } from 'src/exceptions/filetypeandsize';
 import { updateuserdto } from './dto/updateuserdto';
 import { resetpasswordDto } from './dto/resetpassword.dto';
+import { updatePasswordwithLinkDTO } from './dto/updatepasswordwithlinkDTO';
+import { updatePasswordwithOTPDTO } from './dto/updatePasswordwithOTP.dto';
 
 type verifyOTPType = {
   email: string;
@@ -79,33 +81,49 @@ export class UserController {
   // async forgotPassword(@Body() payload: any) {
   //   return await this.userservice.forgotpassword(payload);
   // }
-  @Post("/forgot-passwordlink")
+  @Post('/forgot-passwordlink')
   async forgotPasswordlink(@Body() payload: any) {
     return await this.userservice.forgotpasswordlink(payload);
   }
   @Post('/forgot-password')
-  async forgotPassword(@Body() payload: any,@Res() response:Response) {
-    return await this.userservice.forgotpassword(payload,response);
-  }
-  
-  @Post('verify-otp')
-  async verifyOTP(@Body() payload: verifyOTPType,@Res() response:Response) {
-    return await this.userservice.verifyOTP(payload.email, payload.otp,response);
+  async forgotPassword(@Body() payload: any, @Res() response: Response) {
+    return await this.userservice.forgotpassword(payload, response);
   }
 
-  @Post("/reset-passwordlink/:id/:token")
-  async resetPasswordLink(@Param() {id,token}:any,@Body() payload:any, @Res() response:Response) {
-        return await this.userservice.resetpasswordlink(id,token, payload.password,
-          payload.confirmpassword,response)
+  @Post('verify-otp')
+  async verifyOTP(@Body() payload: verifyOTPType, @Res() response: Response) {
+    return await this.userservice.verifyOTP(
+      payload.email,
+      payload.otp,
+      response,
+    );
+  }
+
+  @Post('/reset-passwordlink/:id/:token')
+  async resetPasswordLink(
+    @Param() { id, token }: any,
+    @Body() payload: updatePasswordwithLinkDTO,
+    @Res() response: Response,
+  ) {
+    return await this.userservice.resetpasswordlink(
+      id,
+      token,
+      payload.password,
+      payload.confirmpassword,
+      response,
+    );
   }
   @Post('/reset-password')
-  async resetPassword(@Body() payload: any,@Res() response:Response) {
+  async resetPassword(
+    @Body() payload: updatePasswordwithOTPDTO,
+    @Res() response: Response,
+  ) {
     return await this.userservice.resetpassword(
       payload.otp,
       payload.email,
       payload.password,
       payload.confirmpassword,
-      response
+      response,
     );
   }
 
