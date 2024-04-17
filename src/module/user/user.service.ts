@@ -14,7 +14,6 @@ import { updateuserdto } from './dto/updateuserdto';
 import { PaginateFunction, paginator } from '../prisma/paginator';
 import { MailerService } from '@nestjs-modules/mailer';
 import { Response } from 'express';
-import { json } from 'stream/consumers';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { userSendResetLinkEvent } from '../email/events/user.sendresetlink.event';
 import { successpassevent } from '../email/events/user.successpass.event';
@@ -25,8 +24,8 @@ export class UserService {
     private readonly prisma: PrismaService,
     private readonly cloudinary: CloudinaryService,
     private readonly mailservice: MailerService,
-    private readonly eventEmitter: EventEmitter2
-  ) { }
+    private readonly eventEmitter: EventEmitter2,
+  ) {}
 
   public async hashpassword(password: string) {
     return await bcrypt.hash(password, 10);
@@ -378,13 +377,14 @@ export class UserService {
     return await this.findManywithPagination(select, where, page);
   }
 
-  async forgotpassword(payload: any) {
+  async forgotpassword(payload: any, response: Response) {
     //check user exist or not......
     const checkuserexist = await this.prisma.user.findUnique({
       where: {
         email: payload.email,
       },
     });
+    console.log(checkuserexist);
     if (!checkuserexist) {
       throw new UnauthorizedException('user not found');
     }
@@ -423,7 +423,9 @@ export class UserService {
       subject: `Reset password otp`,
       html: `<p>Hello user reset password OTP is <b>${OTP}</b></p>`,
     });
-    return 'OTP send successfully';
+    return response
+      .status(201)
+      .json({ success: true, message: 'OTP send successfully' });
   }
 
   //for link method...
@@ -438,31 +440,53 @@ export class UserService {
         throw new UnauthorizedException('user not found');
       }
       //generate token with expiry date........
-      const token = await this.generateToken({ id: checkuserexist.id, email: checkuserexist.email }, { expiresIn: '10m' });
+      const token = await this.generateToken(
+        { id: checkuserexist.id, email: checkuserexist.email },
+        { expiresIn: '10m' },
+      );
 
       //send link to client link to user on email...........
       let userid = checkuserexist.id;
       let to = checkuserexist.email;
-      this.eventEmitter.emit('user.sendresetlinkemail', new userSendResetLinkEvent(userid, token, to))
-      return { success: true, message: "forgot password link send succesfully" };
+      this.eventEmitter.emit(
+        'user.sendresetlinkemail',
+        new userSendResetLinkEvent(userid, token, to),
+      );
+      return {
+        success: true,
+        message: 'forgot password link send succesfully',
+      };
     } catch (error) {
       console.log(error);
     }
   }
 
   //reset password using link....
-  async resetpasswordlink(id: number, token: string, password: string, confirmpassword: string, response: Response) {
+  async resetpasswordlink(
+    id: number,
+    token: string,
+    password: string,
+    confirmpassword: string,
+    response: Response,
+  ) {
     try {
       //check user is exist or not.....
-      const checkuserexist = await this.prisma.user.findUnique({ where: { id: Number(id) } })
+      const checkuserexist = await this.prisma.user.findUnique({
+        where: { id: Number(id) },
+      });
       if (!checkuserexist) {
         throw new UnauthorizedException('user not found');
       }
       //verify token.....
-      const verifiedToken = await jwt.verify(token, "ARBAJ");
-      console.log(verifiedToken)
+      const verifiedToken = await jwt.verify(token, 'ARBAJ');
+      console.log(verifiedToken);
       if (password !== confirmpassword) {
-        return response.status(401).json({ success: false, message: "password and confirmpassword not matched." })
+        return response
+          .status(401)
+          .json({
+            success: false,
+            message: 'password and confirmpassword not matched.',
+          });
       }
       //hash password
 
@@ -470,28 +494,36 @@ export class UserService {
       //reset password........
       await this.prisma.user.update({
         where: {
-          id: Number(checkuserexist.id)
+          id: Number(checkuserexist.id),
         },
         data: {
-          password: hashedpassword
-        }
-      })
+          password: hashedpassword,
+        },
+      });
       const to = checkuserexist.email;
-      this.eventEmitter.emit('user.send_success_pass_update_email', new successpassevent(to))
-      return response.status(201).json({ success: true, message: "password updated successfully." })
-
+      this.eventEmitter.emit(
+        'user.send_success_pass_update_email',
+        new successpassevent(to),
+      );
+      return response
+        .status(201)
+        .json({ success: true, message: 'password updated successfully.' });
     } catch (error) {
-      if (error.message === "jwt expired") {
-        return response.status(401).json({ success: false, message: "This url is expired" })
+      if (error.message === 'jwt expired') {
+        return response
+          .status(401)
+          .json({ success: false, message: 'This url is expired' });
       }
       if (error.message) {
-        return response.status(401).json({ success: false, message: error.message })
+        return response
+          .status(401)
+          .json({ success: false, message: error.message });
       }
-      return response.status(401).json({ success: false, message: error })
+      return response.status(401).json({ success: false, message: error });
     }
   }
   //verify OTP.......
-  async verifyOTP(email: any, otp: number) {
+  async verifyOTP(email: any, otp: number, response: Response) {
     //check user exist or not.......
     const checkuser = await this.prisma.user.findUnique({
       where: {
@@ -499,7 +531,9 @@ export class UserService {
       },
     });
     if (!checkuser) {
-      throw new UnauthorizedException('user not found');
+      return response
+        .status(401)
+        .json({ success: false, message: 'user not found' });
     }
 
     //verify otp
@@ -511,7 +545,9 @@ export class UserService {
       },
     });
     if (!isVerified) {
-      throw new UnauthorizedException('Invalid OTP...');
+      return response
+        .status(401)
+        .json({ success: false, message: 'Invalid OTP...' });
     }
 
     //update isverified to true,,,
@@ -521,10 +557,9 @@ export class UserService {
         isVerified: true,
       },
     });
-    return {
-      status: true,
-      message: 'OTP verified successfully',
-    };
+    return response
+      .status(201)
+      .json({ success: false, message: 'OTP verified successfully' });
     //create passwordToken send back to user.............
   }
 
@@ -533,55 +568,74 @@ export class UserService {
     email: string,
     password: string,
     confirmpassword: string,
+    response: Response,
   ) {
-    // try {
-    //check user is present is present or not
-    const checkuser = await this.prisma.user.findUnique({
-      where: {
-        email: email,
-      },
-    });
+    try {
+      // try {
+      //check user is present is present or not
+      const checkuser = await this.prisma.user.findUnique({
+        where: {
+          email: email,
+        },
+      });
 
-    if (!checkuser) {
-      throw new UnauthorizedException('Invalid user');
-    }
-
-    //check condition OTP is correcct and isVerified is true...
-    console.log(checkuser.id, otp);
-    const isVerified = await this.prisma.oTP.findUnique({
-      where: {
-        user_id: Number(checkuser.id),
-        otp: Number(otp),
-        isVerified: true,
-      },
-    });
-
-    if (isVerified) {
-      //compair password and confirmpassword
-      if (password === confirmpassword) {
-        //reset password
-        const hashedpassword = await this.hashpassword(password);
-        //update password....
-        await this.prisma.user.update({
-          where: {
-            id: Number(checkuser.id),
-          },
-          data: {
-            password: hashedpassword,
-          },
-        });
-
-        return { status: true, message: 'password reset successfully.Please logged In....!' };
-      } else {
-        throw new UnauthorizedException(
-          'password and confirmpassword does not match..',
-        );
+      if (!checkuser) {
+        return response
+          .status(401)
+          .json({ success: false, message: 'Invalid user' });
       }
-      //reset password...
-    } else {
-      throw new UnauthorizedException('Invalid OTP ! OTP is not verified');
+
+      //check condition OTP is correcct and isVerified is true...
+      const isVerified = await this.prisma.oTP.findUnique({
+        where: {
+          user_id: Number(checkuser.id),
+          otp: Number(otp),
+          isVerified: true,
+        },
+      });
+
+      if (isVerified) {
+        //compair password and confirmpassword
+        if (password === confirmpassword) {
+          //reset password
+          const hashedpassword = await this.hashpassword(password);
+          //update password....
+          await this.prisma.user.update({
+            where: {
+              id: Number(checkuser.id),
+            },
+            data: {
+              password: hashedpassword,
+            },
+          });
+          return response
+            .status(201)
+            .json({
+              success: true,
+              message: 'password reset successfully.Please logged In....!',
+            });
+        } else {
+          return response
+            .status(401)
+            .json({
+              success: false,
+              message: 'password and confirmpassword does not match..',
+            });
+        }
+        //reset password...
+      } else {
+        return response
+          .status(401)
+          .json({
+            success: false,
+            message: 'Invalid OTP ! OTP is not verified',
+          });
+      }
+    } catch (error) {
+      return response
+        .status(401)
+        .json({ success: false, message: error?.message });
     }
-    // } catch (error) {}
   }
 
   @OnEvent('user.sendresetlinkemail')

@@ -84,13 +84,13 @@ export class UserController {
     return await this.userservice.forgotpasswordlink(payload);
   }
   @Post('/forgot-password')
-  async forgotPassword(@Body() payload: any) {
-    return await this.userservice.forgotpassword(payload);
+  async forgotPassword(@Body() payload: any,@Res() response:Response) {
+    return await this.userservice.forgotpassword(payload,response);
   }
   
   @Post('verify-otp')
-  async verifyOTP(@Body() payload: verifyOTPType) {
-    return await this.userservice.verifyOTP(payload.email, payload.otp);
+  async verifyOTP(@Body() payload: verifyOTPType,@Res() response:Response) {
+    return await this.userservice.verifyOTP(payload.email, payload.otp,response);
   }
 
   @Post("/reset-passwordlink/:id/:token")
@@ -99,12 +99,13 @@ export class UserController {
           payload.confirmpassword,response)
   }
   @Post('/reset-password')
-  async resetPassword(@Body() payload: any) {
+  async resetPassword(@Body() payload: any,@Res() response:Response) {
     return await this.userservice.resetpassword(
       payload.otp,
       payload.email,
       payload.password,
       payload.confirmpassword,
+      response
     );
   }
 
