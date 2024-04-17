@@ -9,7 +9,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }), UserModule, PrismaModule, AuthModule, PracticeModule, EmailModule, EventEmitterModule.forRoot()],
+  imports: [ConfigModule.forRoot({ isGlobal: true }),  EventEmitterModule.forRoot(),UserModule, PrismaModule, AuthModule, PracticeModule, EmailModule],
   controllers: [AppController],
   providers: [AppService, CloudinaryService],
 })

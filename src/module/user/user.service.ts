@@ -13,6 +13,11 @@ import { CloudinaryService } from 'src/cloudinary.service';
 import { updateuserdto } from './dto/updateuserdto';
 import { PaginateFunction, paginator } from '../prisma/paginator';
 import { MailerService } from '@nestjs-modules/mailer';
+import { Response } from 'express';
+import { json } from 'stream/consumers';
+import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
+import { userSendResetLinkEvent } from '../email/events/user.sendresetlink.event';
+import { successpassevent } from '../email/events/user.successpass.event';
 const paginate: PaginateFunction = paginator({ perPage: 10 });
 @Injectable()
 export class UserService {
@@ -20,7 +25,8 @@ export class UserService {
     private readonly prisma: PrismaService,
     private readonly cloudinary: CloudinaryService,
     private readonly mailservice: MailerService,
-  ) {}
+    private readonly eventEmitter: EventEmitter2
+  ) { }
 
   public async hashpassword(password: string) {
     return await bcrypt.hash(password, 10);
@@ -309,6 +315,7 @@ export class UserService {
       { page },
     );
   }
+
   async getallusers(page: number, searchTerm: string) {
     const select = {
       id: true,
@@ -419,6 +426,70 @@ export class UserService {
     return 'OTP send successfully';
   }
 
+  //for link method...
+  async forgotpasswordlink(payload: any) {
+    try {
+      const checkuserexist = await this.prisma.user.findUnique({
+        where: {
+          email: payload.email,
+        },
+      });
+      if (!checkuserexist) {
+        throw new UnauthorizedException('user not found');
+      }
+      //generate token with expiry date........
+      const token = await this.generateToken({ id: checkuserexist.id, email: checkuserexist.email }, { expiresIn: '10m' });
+
+      //send link to client link to user on email...........
+      let userid = checkuserexist.id;
+      let to = checkuserexist.email;
+      this.eventEmitter.emit('user.sendresetlinkemail', new userSendResetLinkEvent(userid, token, to))
+      return { success: true, message: "forgot password link send succesfully" };
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  //reset password using link....
+  async resetpasswordlink(id: number, token: string, password: string, confirmpassword: string, response: Response) {
+    try {
+      //check user is exist or not.....
+      const checkuserexist = await this.prisma.user.findUnique({ where: { id: Number(id) } })
+      if (!checkuserexist) {
+        throw new UnauthorizedException('user not found');
+      }
+      //verify token.....
+      const verifiedToken = await jwt.verify(token, "ARBAJ");
+      console.log(verifiedToken)
+      if (password !== confirmpassword) {
+        return response.status(401).json({ success: false, message: "password and confirmpassword not matched." })
+      }
+      //hash password
+
+      const hashedpassword = await this.hashpassword(password);
+      //reset password........
+      await this.prisma.user.update({
+        where: {
+          id: Number(checkuserexist.id)
+        },
+        data: {
+          password: hashedpassword
+        }
+      })
+      const to = checkuserexist.email;
+      this.eventEmitter.emit('user.send_success_pass_update_email', new successpassevent(to))
+      return response.status(201).json({ success: true, message: "password updated successfully." })
+
+    } catch (error) {
+      if (error.message === "jwt expired") {
+        return response.status(401).json({ success: false, message: "This url is expired" })
+      }
+      if (error.message) {
+        return response.status(401).json({ success: false, message: error.message })
+      }
+      return response.status(401).json({ success: false, message: error })
+    }
+  }
   //verify OTP.......
   async verifyOTP(email: any, otp: number) {
     //check user exist or not.......
@@ -499,7 +570,8 @@ export class UserService {
             password: hashedpassword,
           },
         });
-        return { status: true, message: 'password reset successfully....!' };
+
+        return { status: true, message: 'password reset successfully.Please logged In....!' };
       } else {
         throw new UnauthorizedException(
           'password and confirmpassword does not match..',
@@ -510,5 +582,27 @@ export class UserService {
       throw new UnauthorizedException('Invalid OTP ! OTP is not verified');
     }
     // } catch (error) {}
+  }
+
+  @OnEvent('user.sendresetlinkemail')
+  async sendresetlinkEmail(payload: userSendResetLinkEvent) {
+    console.log('email send to user');
+    await this.mailservice.sendMail({
+      from: '<arbaaj1147@gmail.com>',
+      to: `shaikharbaj2001@gmail.com`,
+      subject: `Reset password otp`,
+      html: `<p>Hello user reset password Link is <b>http://localhost:3000/reset-passwordlink/${payload.userid}/${payload.token}</b> and it is valid only for 10min</p>`,
+    });
+  }
+
+  @OnEvent('user.send_success_pass_update_email')
+  async sendsucessresetpassword(payload: successpassevent) {
+    console.log('email send to user');
+    await this.mailservice.sendMail({
+      from: '<arbaaj1147@gmail.com>',
+      to: `shaikharbaj2001@gmail.com`,
+      subject: `password update notification`,
+      html: `<p>${payload.to} user password updated successfully...!</p>`,
+    });
   }
 }

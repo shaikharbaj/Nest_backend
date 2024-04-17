@@ -6,9 +6,9 @@ export class EmailController {
 
 
     
-    @Get('/sendmail')
-    async sendMail() {
-        await this.emailService.sendWelcomeEmail();
-        return 'Email sent successfully';
-    }
+    // @Get('/sendmail')
+    // async sendMail() {
+    //     await this.emailService.sendWelcomeEmail();
+    //     return 'Email sent successfully';
+    // }
 }

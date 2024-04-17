@@ -8,6 +8,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
+import * as jwt from 'jsonwebtoken'
 //   import { RpcException } from '@nestjs/microservices';
 
 @Catch()
@@ -30,7 +31,10 @@ export class AppExceptionFilter implements ExceptionFilter {
     };
 
 
-    if (exception instanceof AggregateError) {
+    if (exception instanceof jwt.TokenExpiredError) {
+      responsePayload.statusCode = HttpStatus.UNAUTHORIZED;
+      responsePayload.message = 'Token has expired. Please request a new token.';
+    } else if (exception instanceof AggregateError) {
       console.log('AggregateError');
       if (exception.errors.length > 0) {
         message = `${exception.errors[0].code} to port ${exception.errors[0].port}`;
@@ -62,6 +66,7 @@ export class AppExceptionFilter implements ExceptionFilter {
     }
     httpAdapter.reply(ctx.getResponse(), responsePayload, status);
   }
+
   private formatValidationErrors(errors: string[] | undefined): Record<string, string> {
     if (!errors) {
       return {};
