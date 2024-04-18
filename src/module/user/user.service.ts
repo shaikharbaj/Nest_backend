@@ -25,7 +25,7 @@ export class UserService {
     private readonly cloudinary: CloudinaryService,
     private readonly mailservice: MailerService,
     private readonly eventEmitter: EventEmitter2,
-  ) {}
+  ) { }
 
   public async hashpassword(password: string) {
     return await bcrypt.hash(password, 10);
@@ -114,6 +114,7 @@ export class UserService {
         userId: user.id,
         email: user.email,
         name: user.name,
+        role: user.role
       };
 
       const token = await this.generateToken(payload, { expiresIn: '10h' });
@@ -151,6 +152,7 @@ export class UserService {
           name: true,
           email: true,
           avatar: true,
+          role: true,
           user_information: {
             select: {
               data_of_birth: true,
@@ -530,10 +532,10 @@ export class UserService {
         email: email,
       },
     });
-    if(!otp){
+    if (!otp) {
       return response
-      .status(401)
-      .json({ success: false, message: 'Otp is required'});
+        .status(401)
+        .json({ success: false, message: 'Otp is required' });
     }
     if (!checkuser) {
       return response

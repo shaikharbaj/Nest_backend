@@ -19,7 +19,7 @@ class MatchPasswordsConstraint implements ValidatorConstraintInterface {
   }
 
   defaultMessage(args: ValidationArguments): string {
-    return 'Confirmed password does not match password';
+    return 'confirmpassword confirmed password does not match password';
   }
 }
 export class updatePasswordwithOTPDTO {
@@ -40,12 +40,12 @@ export class updatePasswordwithOTPDTO {
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/,
     {
       message:
-        'Password must contain at least one lowercase letter, one uppercase letter, one number, and one special character',
+        'password password must contain at least one lowercase letter, one uppercase letter, one number, and one special character',
     },
   )
   password: string;
 
-  @IsNotEmpty({ message: 'Confirmed password is required' })
+  @IsNotEmpty({ message: 'confirmpassword Confirmed password is required' })
   @Validate(MatchPasswordsConstraint)
   confirmpassword: string;
 }

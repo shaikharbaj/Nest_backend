@@ -13,12 +13,22 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// type Role{
+//      admin
+//      user
+// }
+enum Role {
+  ADMIN
+  USER
+}
+
 model User {
   id               Int              @id @default(autoincrement())
   name             String?
   avatar           String?
   email            String           @unique
   password         String
+  role             Role             @default(USER)
   user_information userInformation?
   OTP              OTP?
 }
@@ -36,12 +46,12 @@ model userInformation {
 }
 
 model OTP {
-  id        Int      @id @default(autoincrement())
-  otp       Int
-  user_id   Int      @unique
-  isVerified Boolean @default(false)
-  user      User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
+  id         Int      @id @default(autoincrement())
+  otp        Int
+  user_id    Int      @unique
+  isVerified Boolean  @default(false)
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
 }
 
 model JsonExample {
