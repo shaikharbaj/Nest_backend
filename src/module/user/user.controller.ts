@@ -25,13 +25,14 @@ import { Request, Response } from 'express';
 import { Auth } from './dto/authdto';
 import { CloudinaryService } from 'src/cloudinary.service';
 import { FileInterceptor } from '@nestjs/platform-express';
-import multer from 'multer';
-import path from 'path';
 import { FileValidationPipe } from 'src/exceptions/filetypeandsize';
 import { updateuserdto } from './dto/updateuserdto';
 import { resetpasswordDto } from './dto/resetpassword.dto';
 import { updatePasswordwithLinkDTO } from './dto/updatepasswordwithlinkDTO';
 import { updatePasswordwithOTPDTO } from './dto/updatePasswordwithOTP.dto';
+import { Roles } from '../auth/decorator/roles.decorator';
+import { Role } from 'src/constants/role';
+import { RolesGuard } from '../auth/guards/roles.guard';
 
 type verifyOTPType = {
   email: string;
@@ -39,8 +40,10 @@ type verifyOTPType = {
 };
 @Controller('user')
 export class UserController {
-  constructor(private readonly userservice: UserService) {}
+  constructor(private readonly userservice: UserService) { }
 
+  @Roles(Role.ADMIN)
+  @UseGuards(JwtGuard, RolesGuard)
   @Get()
   async getallusers(@Query() payload: any) {
     const { page, searchTerm }: { page: number; searchTerm: string } = payload;
@@ -129,5 +132,5 @@ export class UserController {
 
   @UseGuards(RefreshJWTGuard)
   @Post('refresh')
-  async refreshToken(@Req() req: Request) {}
+  async refreshToken(@Req() req: Request) { }
 }

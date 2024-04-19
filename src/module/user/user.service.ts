@@ -71,10 +71,36 @@ export class UserService {
   }
 
   async findByEmail(email: string) {
-    return await this.prisma.user.findUnique({ where: { email } });
+    return await this.prisma.user.findUnique({
+      select: {
+        id: true,
+        name: true,
+        avatar: true,
+        email: true,
+        password: true,
+        user_information: {
+          select: {
+            data_of_birth: true,
+            phone_number: true,
+            state: true,
+            street: true,
+            city: true,
+            zipcode: true,
+          },
+        },
+        roles: {
+          select: {
+            roleId: true,
+            role: true
+          }
+        }
+
+      }, where: { email }
+    });
   }
 
   async createuser(data: createUserDto, file: any) {
+    // return Array.isArray(JSON.parse(data.roles))
     const checkuser = await this.prisma.user.findUnique({
       where: {
         email: data.email,
@@ -100,9 +126,22 @@ export class UserService {
         throw new InternalServerErrorException('Failed to upload image');
       }
     }
+    const roles = JSON.parse(data?.roles);
     const newUser = await this.prisma.user.create({
-      data: payload,
-    });
+      data: {
+        ...payload
+      }
+    })
+    const datapayload = roles.map(roleid => ({ roleId: Number(roleid), userId: Number(newUser?.id) }))
+    //add roles to the user.....
+    const addRoles = await this.prisma.userRoles.createMany({
+      data: [
+        ...datapayload
+      ]
+    })
+    // const newUser = await this.prisma.user.create({
+    //   data: payload,
+    // });
 
     return newUser;
   }
@@ -114,7 +153,7 @@ export class UserService {
         userId: user.id,
         email: user.email,
         name: user.name,
-        role: user.role
+        // role: user.role
       };
 
       const token = await this.generateToken(payload, { expiresIn: '10h' });
@@ -152,7 +191,7 @@ export class UserService {
           name: true,
           email: true,
           avatar: true,
-          role: true,
+          // role: true,
           user_information: {
             select: {
               data_of_birth: true,

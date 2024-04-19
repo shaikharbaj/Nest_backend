@@ -20,6 +20,7 @@ datasource db {
 enum Role {
   ADMIN
   USER
+  MODERATOR
 }
 
 model User {
@@ -28,9 +29,10 @@ model User {
   avatar           String?
   email            String           @unique
   password         String
-  role             Role             @default(USER)
+  // role             Role             @default(USER)
   user_information userInformation?
   OTP              OTP?
+  roles            userRoles[]
 }
 
 model userInformation {
@@ -52,6 +54,23 @@ model OTP {
   isVerified Boolean  @default(false)
   user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
   createdAt  DateTime @default(now())
+}
+
+model Roles {
+  id        Int         @id @default(autoincrement())
+  name      Role
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  users     userRoles[]
+}
+
+model userRoles {
+  roleId Int
+  role   Roles @relation(fields: [roleId], references: [id])
+  userId Int
+  user   User  @relation(fields: [userId], references: [id])
+
+  @@id([userId, roleId])
 }
 
 model JsonExample {
