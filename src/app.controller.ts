@@ -1,13 +1,15 @@
 import { Body, Controller, Get, Post } from '@nestjs/common';
 import { AppService } from './app.service';
 import { userSendResetLinkEvent } from './module/email/events/user.sendresetlink.event';
+import { PrismaService } from './module/prisma/prismaservice';
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService, ) { }
+  constructor(private readonly appService: AppService,private prisma :PrismaService ) { }
 
   @Get()
-  getHello(): Promise<any> {
-    return this.appService.getHello();
+ async getHello(): Promise<any> {
+
+
   }
 
   @Post("createuser")

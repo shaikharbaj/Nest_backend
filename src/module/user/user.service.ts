@@ -25,7 +25,7 @@ export class UserService {
     private readonly cloudinary: CloudinaryService,
     private readonly mailservice: MailerService,
     private readonly eventEmitter: EventEmitter2,
-  ) { }
+  ) {}
 
   public async hashpassword(password: string) {
     return await bcrypt.hash(password, 10);
@@ -44,7 +44,6 @@ export class UserService {
   public async validateuser(data: loginuserDto) {
     //check user is exist or not
     const user = await this.findByEmail(data.email);
-
     //if user is not found
     if (!user) {
       throw new UnauthorizedException('Invalid credintials');
@@ -91,16 +90,15 @@ export class UserService {
         roles: {
           select: {
             roleId: true,
-            role: true
-          }
-        }
-
-      }, where: { email }
+            role: true,
+          },
+        },
+      },
+      where: { email },
     });
   }
 
   async createuser(data: createUserDto, file: any) {
-    // return Array.isArray(JSON.parse(data.roles))
     const checkuser = await this.prisma.user.findUnique({
       where: {
         email: data.email,
@@ -110,7 +108,7 @@ export class UserService {
       throw new ConflictException('user with this email already exit');
     }
 
-    //hash password......
+    // //hash password......
     const hashpassword = await this.hashpassword(data.password);
     const payload: any = {
       name: data.name,
@@ -127,6 +125,14 @@ export class UserService {
       }
     }
     const roles = JSON.parse(data?.roles);
+    //check roles is exist or not....
+    const checkrolesexist = await this.prisma.roles.findMany({
+          where:{
+               id:{
+                  in:roles
+               }
+          }
+    })
     const newUser = await this.prisma.user.create({
       data: {
         ...payload
@@ -139,10 +145,6 @@ export class UserService {
         ...datapayload
       ]
     })
-    // const newUser = await this.prisma.user.create({
-    //   data: payload,
-    // });
-
     return newUser;
   }
 
@@ -153,15 +155,15 @@ export class UserService {
         userId: user.id,
         email: user.email,
         name: user.name,
-        // role: user.role
+        role: user.roles,
       };
-
       const token = await this.generateToken(payload, { expiresIn: '10h' });
       return {
         ...payload,
         token,
       };
     } catch (error) {
+      console.log(error);
       throw new UnauthorizedException('Invalid credintials');
     }
   }
@@ -522,12 +524,10 @@ export class UserService {
       const verifiedToken = await jwt.verify(token, 'ARBAJ');
       console.log(verifiedToken);
       if (password !== confirmpassword) {
-        return response
-          .status(401)
-          .json({
-            success: false,
-            message: 'password and confirmpassword not matched.',
-          });
+        return response.status(401).json({
+          success: false,
+          message: 'password and confirmpassword not matched.',
+        });
       }
       //hash password
 
@@ -654,28 +654,22 @@ export class UserService {
               password: hashedpassword,
             },
           });
-          return response
-            .status(201)
-            .json({
-              success: true,
-              message: 'password reset successfully.Please logged In....!',
-            });
+          return response.status(201).json({
+            success: true,
+            message: 'password reset successfully.Please logged In....!',
+          });
         } else {
-          return response
-            .status(401)
-            .json({
-              success: false,
-              message: 'password and confirmpassword does not match..',
-            });
+          return response.status(401).json({
+            success: false,
+            message: 'password and confirmpassword does not match..',
+          });
         }
         //reset password...
       } else {
-        return response
-          .status(401)
-          .json({
-            success: false,
-            message: 'Invalid OTP ! OTP is not verified',
-          });
+        return response.status(401).json({
+          success: false,
+          message: 'Invalid OTP ! OTP is not verified',
+        });
       }
     } catch (error) {
       return response

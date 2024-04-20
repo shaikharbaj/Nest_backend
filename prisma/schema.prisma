@@ -44,7 +44,7 @@ model userInformation {
   state         String?
   zipcode       String?
   userId        Int       @unique
-  user          User      @relation(fields: [userId], references: [id])
+  user          User      @relation(fields: [userId], references: [id],onDelete: Cascade)
 }
 
 model OTP {
@@ -68,7 +68,7 @@ model userRoles {
   roleId Int
   role   Roles @relation(fields: [roleId], references: [id])
   userId Int
-  user   User  @relation(fields: [userId], references: [id])
+  user   User  @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([userId, roleId])
 }
