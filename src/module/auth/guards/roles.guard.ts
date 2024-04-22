@@ -19,6 +19,7 @@ export class RolesGuard implements CanActivate {
       'roles',
       context.getHandler(),
     );
+    console.log(requiredRoles)
     if (!requiredRoles || requiredRoles.length === 0) {
       // No roles specified for this endpoint, so allow access
       return true;
@@ -35,6 +36,7 @@ export class RolesGuard implements CanActivate {
 
     // Extract role names from user's roles array
     const userRoleNames = user.role.map((role) => role.role.name);
+    console.log(userRoleNames)
 
     // Check if any of the user's role names match the required roles for the endpoint
     const hasRequiredRole = requiredRoles.some((role) =>

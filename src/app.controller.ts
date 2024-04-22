@@ -4,20 +4,31 @@ import { userSendResetLinkEvent } from './module/email/events/user.sendresetlink
 import { PrismaService } from './module/prisma/prismaservice';
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService,private prisma :PrismaService ) { }
+  constructor(private readonly appService: AppService, private prisma: PrismaService) { }
 
   @Get()
- async getHello(): Promise<any> {
-
+  async getHello(): Promise<any> {
+    // const payload = [
+    //   { name: "ADMIN" },
+    //   { name: "MODERATOR" },
+    //   { name: "USER" }
+    // ]
+    // return await this.prisma.roles.createMany({
+    //   data: [
+    //        {name:"ADMIN"},
+    //        {name:"MODERATOR"},
+    //        {name:"USER"},
+    //   ]
+    // });
 
   }
 
   @Post("createuser")
-  async createUser(@Body() body:any){
-      try {
-       return await this.appService.createuser(body);
-      } catch (error) {
-        console.log(error)
-      }
+  async createUser(@Body() body: any) {
+    try {
+      return await this.appService.createuser(body);
+    } catch (error) {
+      console.log(error)
+    }
   }
 }
