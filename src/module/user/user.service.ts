@@ -1,5 +1,7 @@
 import {
   ConflictException,
+  HttpCode,
+  HttpStatus,
   Injectable,
   InternalServerErrorException,
   UnauthorizedException,
@@ -124,28 +126,55 @@ export class UserService {
         throw new InternalServerErrorException('Failed to upload image');
       }
     }
-    const roles = JSON.parse(data?.roles);
-    //check roles is exist or not....
-    const checkrolesexist = await this.prisma.roles.findMany({
-          where:{
-               id:{
-                  in:roles
-               }
-          }
-    })
+
+    //check user roleID
+    const UserRoleId = await this.prisma.roles.findFirst({
+      where: { name: 'USER' },
+    });
+    //create new User with type user....
     const newUser = await this.prisma.user.create({
       data: {
-        ...payload
-      }
-    })
-    const datapayload = roles.map(roleid => ({ roleId: Number(roleid), userId: Number(newUser?.id) }))
-    //add roles to the user.....
-    const addRoles = await this.prisma.userRoles.createMany({
-      data: [
-        ...datapayload
-      ]
-    })
+        name: data.name,
+        email: data.email,
+        password: hashpassword,
+        roles: {
+          create: [
+            {
+              role: {
+                connect: {
+                  id: UserRoleId.id,
+                },
+              },
+            },
+          ],
+        },
+      },
+    });
+
     return newUser;
+    // const roles = JSON.parse(data?.roles);
+    //check roles is exist or not....
+    // const checkrolesexist = await this.prisma.roles.findMany({
+    //       where:{
+    //            id:{
+    //               in:roles
+    //            }
+    //       }
+    // })
+
+    // const newUser = await this.prisma.user.create({
+    //   data: {
+    //     ...payload
+    //   }
+    // })
+    // const datapayload = roles.map(roleid => ({ roleId: Number(roleid), userId: Number(newUser?.id) }))
+    //add roles to the user.....
+    // const addRoles = await this.prisma.userRoles.createMany({
+    //   data: [
+    //     ...datapayload
+    //   ]
+    // })
+    // return newUser;
   }
 
   async loginuser(data: loginuserDto) {
@@ -209,6 +238,48 @@ export class UserService {
       return user;
     } catch (error) {
       return error;
+    }
+  }
+  async getuserbyId(id: number, res: Response) {
+    try {
+      const userdata = await this.prisma.user.findFirst({
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          avatar: true,
+          user_information: {
+            select: {
+              id: true,
+              data_of_birth: true,
+              state: true,
+              street: true,
+              city: true,
+              zipcode: true,
+              phone_number: true,
+            },
+          },
+          roles: {
+            select: {
+              roleId: true,
+              role: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          },
+        },
+        where: {
+          id: Number(id),
+        },
+      });
+      return res.status(HttpStatus.OK).json({ success: true, data: userdata });
+    } catch (error) {
+      return res
+        .status(HttpStatus.FORBIDDEN)
+        .json({ success: false, message: error.message });
     }
   }
 

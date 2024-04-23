@@ -40,7 +40,7 @@ type verifyOTPType = {
 };
 @Controller('user')
 export class UserController {
-  constructor(private readonly userservice: UserService) { }
+  constructor(private readonly userservice: UserService) {}
 
   @Roles(Role.ADMIN)
   @UseGuards(JwtGuard, RolesGuard)
@@ -67,6 +67,11 @@ export class UserController {
   @Get('loaduser')
   async getuserprofile(@Auth() auth: any) {
     return await this.userservice.getuserprofile(auth);
+  }
+
+  @Get(':id')
+  async getuserbyId(@Param('id') id: number, @Res() res: Response) {
+    return await this.userservice.getuserbyId(id, res);
   }
 
   @UseGuards(JwtGuard)
@@ -132,5 +137,5 @@ export class UserController {
 
   @UseGuards(RefreshJWTGuard)
   @Post('refresh')
-  async refreshToken(@Req() req: Request) { }
+  async refreshToken(@Req() req: Request) {}
 }
