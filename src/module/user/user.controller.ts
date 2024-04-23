@@ -40,7 +40,7 @@ type verifyOTPType = {
 };
 @Controller('user')
 export class UserController {
-  constructor(private readonly userservice: UserService) {}
+  constructor(private readonly userservice: UserService) { }
 
   @Roles(Role.ADMIN)
   @UseGuards(JwtGuard, RolesGuard)
@@ -85,10 +85,6 @@ export class UserController {
     return await this.userservice.updateProfile(auth, data, file);
   }
 
-  // @Post('/forgot-password')
-  // async forgotPassword(@Body() payload: any) {
-  //   return await this.userservice.forgotpassword(payload);
-  // }
   @Post('/forgot-passwordlink')
   async forgotPasswordlink(@Body() payload: any) {
     return await this.userservice.forgotpasswordlink(payload);
@@ -137,5 +133,13 @@ export class UserController {
 
   @UseGuards(RefreshJWTGuard)
   @Post('refresh')
-  async refreshToken(@Req() req: Request) {}
+  async refreshToken(@Req() req: Request) { }
+
+  //chnaga role....
+  @Roles(Role.ADMIN)
+  @UseGuards(JwtGuard, RolesGuard)
+  @Patch("/change_role")
+  async changeRole(@Body() data: any, @Res() response: Response) {
+    return await this.userservice.change_role(response, data);
+  }
 }

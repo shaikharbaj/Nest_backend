@@ -1,4 +1,4 @@
-import { Controller, Get, Res } from '@nestjs/common';
+import { Body, Controller, Get, Res,Post } from '@nestjs/common';
 import { RoleService } from './role.service';
 import { Response } from 'express';
 
@@ -10,5 +10,10 @@ export class RoleController {
     @Get("allroles")
     async getAllRoles(@Res() res:Response) {
         return await this.roleServive.getAllRoles(res);
+    }
+
+    @Post("/add")
+    async addRole(@Body() data:any,@Res() res:Response){
+          return await this.roleServive.addrole(res,data);
     }
 }

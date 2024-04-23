@@ -1,0 +1,151 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// type Role{
+//      admin
+//      user
+// }
+enum Role {
+  ADMIN
+  USER
+  MODERATOR
+}
+
+model User {
+  id               Int              @id @default(autoincrement())
+  name             String?
+  avatar           String?
+  email            String           @unique
+  password         String
+  // role             Role             @default(USER)
+  user_information userInformation?
+  OTP              OTP?
+  // roles            userRoles[]
+  role_id          Int
+  role             Roles            @relation(fields: [role_id], references: [id])
+  // userRoles        userRoles[]
+}
+
+model userInformation {
+  id            Int       @id @default(autoincrement())
+  data_of_birth DateTime? @db.Date()
+  phone_number  String?   @db.VarChar(25)
+  street        String?
+  city          String?
+  state         String?
+  zipcode       String?
+  userId        Int       @unique
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model OTP {
+  id         Int      @id @default(autoincrement())
+  otp        Int
+  user_id    Int      @unique
+  isVerified Boolean  @default(false)
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+}
+
+model Roles {
+  id        Int      @id @default(autoincrement())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  users     User[]
+  // users     userRoles[]
+  // userRoles userRoles[]
+}
+
+// model userRoles {
+//   roleId Int
+//   role   Roles @relation(fields: [roleId], references: [id])
+//   userId Int
+//   user   User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+//   @@id([userId, roleId])
+// }
+
+model JsonExample {
+  id         Int    @id @default(autoincrement())
+  name       String
+  attributes Json
+}
+
+
+
+
+
+import { PrismaClient } from '@prisma/client';
+import * as bcrypt from 'bcryptjs';
+const prisma = new PrismaClient();
+
+async function main() {
+  console.log('admin info seeding start...!');
+  const adminInfo = {
+    name: 'Admin',
+    email: 'admin@gmail.com',
+    password: 'Admin@123',
+  };
+  const hashedpassword = await bcrypt.hash('Admin@123', 10);
+  //find admin role id...
+  const adminRole = await prisma.roles.findFirst({
+    where: {
+      name: 'ADMIN',
+    },
+  });
+  // const user = await prisma.user.create({
+  //   data: {
+  //     name: 'Admin',
+  //     email: 'admin@gmail.com',
+  //     password: hashedpassword,
+  //     user_information: {
+  //       create: {
+  //         phone_number: '7028504876',
+  //         data_of_birth: new Date('2001-05-10'),
+  //         street: 'Jalgaon',
+  //         city: 'Jalgaon',
+  //         state: 'Maharashtra',
+  //         zipcode: '413723',
+  //       },
+  //     },
+  //     roles: {
+  //       create: {
+  //         role: {
+  //           connect: {
+  //             id: adminRole.id,
+  //           },
+  //         },
+  //       },
+  //     },
+  //   },
+  // });
+  console.log('data seeded successfully....!');
+}
+
+main()
+  .catch((e) => {
+    console.log(e);
+    process.exit(1);
+  })
+  .finally(() => {
+    prisma.$disconnect();
+  });
+
+
+,
+  "prisma": {
+    "seed": "ts-node prisma/seeders/seed.ts"
+  }

@@ -13,26 +13,17 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// type Role{
-//      admin
-//      user
-// }
-enum Role {
-  ADMIN
-  USER
-  MODERATOR
-}
-
 model User {
   id               Int              @id @default(autoincrement())
   name             String?
   avatar           String?
   email            String           @unique
   password         String
-  // role             Role             @default(USER)
   user_information userInformation?
   OTP              OTP?
-  roles            userRoles[]
+  status           Boolean          @default(true)
+  role_id          Int
+  role             Roles            @relation(fields: [role_id], references: [id])
 }
 
 model userInformation {
@@ -57,24 +48,9 @@ model OTP {
 }
 
 model Roles {
-  id        Int         @id @default(autoincrement())
+  id        Int      @id @default(autoincrement())
   name      String
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
-  users     userRoles[]
-}
-
-model userRoles {
-  roleId Int
-  role   Roles @relation(fields: [roleId], references: [id])
-  userId Int
-  user   User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@id([userId, roleId])
-}
-
-model JsonExample {
-  id         Int    @id @default(autoincrement())
-  name       String
-  attributes Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  users     User[]
 }
