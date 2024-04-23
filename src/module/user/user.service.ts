@@ -27,7 +27,7 @@ export class UserService {
     private readonly cloudinary: CloudinaryService,
     private readonly mailservice: MailerService,
     private readonly eventEmitter: EventEmitter2,
-  ) { }
+  ) {}
 
   public async hashpassword(password: string) {
     return await bcrypt.hash(password, 10);
@@ -61,7 +61,24 @@ export class UserService {
 
     return result;
   }
+  public async validateAdmin(data: loginuserDto) {
+    //check user is exist or not
+    const user = await this.findAdminByEmail(data.email);
+    //if user is not found
+    if (!user) {
+      throw new UnauthorizedException('Invalid credintials');
+    }
 
+    //comopair
+    const checkpassword = await bcrypt.compare(data.password, user.password);
+    if (!checkpassword) {
+      throw new UnauthorizedException('Invalid credintials');
+    }
+
+    const { password, ...result } = user;
+
+    return result;
+  }
   public generateotp() {
     var digits = '0123456789';
     let OTP = '';
@@ -72,6 +89,11 @@ export class UserService {
   }
 
   async findByEmail(email: string) {
+    const checkuserRole = await this.prisma.roles.findFirst({
+      where: {
+        name: 'USER',
+      },
+    });
     return await this.prisma.user.findUnique({
       select: {
         id: true,
@@ -93,11 +115,48 @@ export class UserService {
         role: {
           select: {
             id: true,
-            name: true
-          }
-        }
+            name: true,
+          },
+        },
       },
-      where: { email },
+      where: { email, role_id: Number(checkuserRole.id) },
+    });
+  }
+
+  async findAdminByEmail(email: string) {
+    const checkuserRole = await this.prisma.roles.findFirst({
+      where: {
+        name: 'USER',
+      },
+    });
+    return await this.prisma.user.findUnique({
+      select: {
+        id: true,
+        name: true,
+        avatar: true,
+        email: true,
+        password: true,
+        user_information: {
+          select: {
+            data_of_birth: true,
+            phone_number: true,
+            state: true,
+            street: true,
+            city: true,
+            zipcode: true,
+          },
+        },
+        role_id: true,
+        role: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+      where: { email,NOT:{
+              role_id:checkuserRole.id
+      } },
     });
   }
 
@@ -133,13 +192,15 @@ export class UserService {
       where: { name: 'USER' },
     });
     //create new User with type user....
-    const userroleId = await this.prisma.roles.findFirst({ where: { name: "USER" } })
+    const userroleId = await this.prisma.roles.findFirst({
+      where: { name: 'USER' },
+    });
     const newUser = await this.prisma.user.create({
       data: {
         name: data.name,
         email: data.email,
         password: hashpassword,
-        role_id: userroleId.id
+        role_id: userroleId.id,
       },
     });
 
@@ -177,10 +238,9 @@ export class UserService {
         email: user.email,
         name: user.name,
         role: user.role,
+        avatar: user.avatar,
+        user_information: user.user_information,
       };
-      if (user.avatar) {
-        payload['avatar'] = user.avatar;
-      }
       const token = await this.generateToken(payload, { expiresIn: '10h' });
       return {
         ...payload,
@@ -190,6 +250,28 @@ export class UserService {
       throw new UnauthorizedException('Invalid credintials');
     }
   }
+
+  async loginAdmin(data: loginuserDto) {
+    try {
+      const admin = await this.validateAdmin(data);
+      const payload = {
+        userId: admin.id,
+        email: admin.email,
+        name: admin.name,
+        role: admin.role,
+        avatar: admin.avatar,
+        user_information: admin.user_information,
+      };
+      const token = await this.generateToken(payload, { expiresIn: '10h' });
+      return {
+        ...payload,
+        token,
+      };
+    } catch (error) {
+      throw new UnauthorizedException('Invalid credintials');
+    }
+  }
+
   async getuserprofile(auth: any) {
     try {
       const select = {
@@ -257,9 +339,9 @@ export class UserService {
           role: {
             select: {
               id: true,
-              name: true
-            }
-          }
+              name: true,
+            },
+          },
         },
         where: {
           id: Number(id),
@@ -411,22 +493,32 @@ export class UserService {
   //change role
   async change_role(response: Response, data: any) {
     if (!data.user_id) {
-      return response.status(HttpStatus.BAD_REQUEST).json({ success: false, message: "please provide userid" })
+      return response
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ success: false, message: 'please provide userid' });
     }
     if (!data.role_id) {
-      return response.status(HttpStatus.BAD_REQUEST).json({ success: false, message: "please provide roleid" })
+      return response
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ success: false, message: 'please provide roleid' });
     }
     //check user present or not
     const user = await this.prisma.user.findFirst({
-      where: { id: Number(data.user_id) }
-    })
+      where: { id: Number(data.user_id) },
+    });
     if (!user) {
-      return response.status(HttpStatus.NOT_FOUND).json({ success: false, message: "user is not present" })
+      return response
+        .status(HttpStatus.NOT_FOUND)
+        .json({ success: false, message: 'user is not present' });
     }
     //ckeck role...
-    const role = await this.prisma.roles.findFirst({ where: { id: Number(data.role_id) } })
+    const role = await this.prisma.roles.findFirst({
+      where: { id: Number(data.role_id) },
+    });
     if (!role) {
-      return response.status(HttpStatus.NOT_FOUND).json({ success: false, message: "role is not present" })
+      return response
+        .status(HttpStatus.NOT_FOUND)
+        .json({ success: false, message: 'role is not present' });
     }
 
     const userPayload = {
@@ -449,23 +541,26 @@ export class UserService {
       role: {
         select: {
           id: true,
-          name: true
-        }
-      }
-    }
+          name: true,
+        },
+      },
+    };
 
     //update role....
     const updateduser = await this.prisma.user.update({
       select: userPayload,
       where: {
-        id: Number(data.user_id)
+        id: Number(data.user_id),
       },
       data: {
-        role_id: Number(data.role_id)
-      }
-    })
-    return response.status(HttpStatus.OK).json({ success: true, message: "user updated successfully", data: updateduser })
-      ;
+        role_id: Number(data.role_id),
+      },
+    });
+    return response.status(HttpStatus.OK).json({
+      success: true,
+      message: 'user updated successfully',
+      data: updateduser,
+    });
   }
 
   async findManywithPagination(select: {}, where: any, page: number = 1) {
@@ -485,6 +580,7 @@ export class UserService {
       name: true,
       email: true,
       avatar: true,
+      status:true,
       user_information: {
         select: {
           id: true,
@@ -501,9 +597,9 @@ export class UserService {
       role: {
         select: {
           id: true,
-          name: true
-        }
-      }
+          name: true,
+        },
+      },
     };
 
     // let filter: any = {};

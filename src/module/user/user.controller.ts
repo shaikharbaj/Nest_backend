@@ -42,7 +42,7 @@ type verifyOTPType = {
 export class UserController {
   constructor(private readonly userservice: UserService) { }
 
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN,Role.SUBADMIN)
   @UseGuards(JwtGuard, RolesGuard)
   @Get()
   async getallusers(@Query() payload: any) {
@@ -62,6 +62,10 @@ export class UserController {
   @Post('/login_user')
   async loginuser(@Body() data: loginuserDto) {
     return await this.userservice.loginuser(data);
+  }
+  @Post('/login_admin')
+  async loginadmin(@Body() data: loginuserDto) {
+    return await this.userservice.loginAdmin(data);
   }
   @UseGuards(JwtGuard)
   @Get('loaduser')
