@@ -42,7 +42,21 @@ type verifyOTPType = {
 export class UserController {
   constructor(private readonly userservice: UserService) { }
 
-  @Roles(Role.ADMIN,Role.SUBADMIN)
+  @Roles(Role.ADMIN, Role.SUBADMIN)
+  @UseGuards(JwtGuard, RolesGuard)
+  @Get("/getalldashboardcount")
+  async getalldashboardcount(@Res() response: Response) {
+    return this.userservice.getalldashboardcount(response);
+  }
+
+  @Roles(Role.ADMIN, Role.SUBADMIN)
+  @UseGuards(JwtGuard, RolesGuard)
+  @Patch("/togglestatus/:id")
+  async togglestatus(@Res() response: Response, @Param("id") id: number) {
+    return await this.userservice.togglestatus(response, id);
+  }
+
+  @Roles(Role.ADMIN, Role.SUBADMIN)
   @UseGuards(JwtGuard, RolesGuard)
   @Get()
   async getallusers(@Query() payload: any) {
@@ -134,10 +148,6 @@ export class UserController {
       response,
     );
   }
-
-  @UseGuards(RefreshJWTGuard)
-  @Post('refresh')
-  async refreshToken(@Req() req: Request) { }
 
   //chnaga role....
   @Roles(Role.ADMIN)

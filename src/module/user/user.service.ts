@@ -19,6 +19,7 @@ import { Response } from 'express';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { userSendResetLinkEvent } from '../email/events/user.sendresetlink.event';
 import { successpassevent } from '../email/events/user.successpass.event';
+import { error } from 'console';
 const paginate: PaginateFunction = paginator({ perPage: 10 });
 @Injectable()
 export class UserService {
@@ -27,7 +28,7 @@ export class UserService {
     private readonly cloudinary: CloudinaryService,
     private readonly mailservice: MailerService,
     private readonly eventEmitter: EventEmitter2,
-  ) {}
+  ) { }
 
   public async hashpassword(password: string) {
     return await bcrypt.hash(password, 10);
@@ -46,9 +47,14 @@ export class UserService {
   public async validateuser(data: loginuserDto) {
     //check user is exist or not
     const user = await this.findByEmail(data.email);
+    console.log(user)
     //if user is not found
     if (!user) {
       throw new UnauthorizedException('Invalid credintials');
+    }
+
+    if (!user.status) {
+      throw new Error("your accound is currently suspended please contact to admin")
     }
 
     //comopair
@@ -101,6 +107,7 @@ export class UserService {
         avatar: true,
         email: true,
         password: true,
+        status: true,
         user_information: {
           select: {
             data_of_birth: true,
@@ -154,10 +161,50 @@ export class UserService {
           },
         },
       },
-      where: { email,NOT:{
-              role_id:checkuserRole.id
-      } },
+      where: {
+        email, NOT: {
+          role_id: checkuserRole.id
+        }
+      },
     });
+  }
+
+  //dashboard count...
+  async getalldashboardcount(response: Response) {
+    try {
+      //admin count......
+      const roles = await this.prisma.roles.findMany({});
+      const admin = roles.filter((role) => role.name === "ADMIN")[0];
+      const subadmin = roles.filter((role) => role.name === "SUBADMIN")[0];
+      const user = roles.filter((role) => role.name === "USER")[0];
+
+      const admincount = await this.prisma.user.aggregate({
+        _count: true, where: {
+          role_id: Number(admin.id)
+        }
+      })
+      //subadmin count.......
+      const subadmincount = await this.prisma.user.aggregate({
+        _count: true, where: {
+          role_id: Number(subadmin.id)
+        }
+      })
+      //user count........
+      const usercount = await this.prisma.user.aggregate({
+        _count: true, where: {
+          role_id: Number(user.id)
+        }
+      })
+
+      let data = {
+        admincount,
+        subadmincount,
+        usercount
+      }
+      return response.status(HttpStatus.OK).json({ success: true, data })
+    } catch (error) {
+      return response.status(HttpStatus.BAD_REQUEST).json({ success: false, message: error.message })
+    }
   }
 
   async createuser(data: createUserDto, file: any) {
@@ -247,7 +294,7 @@ export class UserService {
         token,
       };
     } catch (error) {
-      throw new UnauthorizedException('Invalid credintials');
+      throw new UnauthorizedException(error.message);
     }
   }
 
@@ -563,6 +610,70 @@ export class UserService {
     });
   }
 
+  //toggle status....
+  async togglestatus(response: Response, id: number) {
+    try {
+      //check status......
+      const select = {
+        id: true,
+        name: true,
+        email: true,
+        avatar: true,
+        status: true,
+        user_information: {
+          select: {
+            id: true,
+            data_of_birth: true,
+            phone_number: true,
+            state: true,
+            street: true,
+            city: true,
+            zipcode: true,
+            userId: true,
+          },
+        },
+        role_id: true,
+        role: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      }
+      const isActive = await this.prisma.user.findUnique({
+        where: {
+          id: Number(id)
+        }
+      })
+      if (isActive.status) {
+        const user = await this.prisma.user.update({
+          select: select,
+          where: {
+            id: Number(id)
+          },
+          data: {
+            status: false
+          }
+        })
+        return response.status(HttpStatus.OK).json({ success: true, data: user, message: "status update successfully" })
+      } else {
+        const user = await this.prisma.user.update({
+          select: select,
+          where: {
+            id: Number(id)
+          },
+          data: {
+            status: true
+          }
+        })
+
+        return response.status(HttpStatus.OK).json({ success: true, data: user, message: "status update successfully" })
+      }
+    } catch (error) {
+      return response.status(HttpStatus.BAD_GATEWAY).json({ success: false, message: error.message });
+    }
+  }
+
   async findManywithPagination(select: {}, where: any, page: number = 1) {
     return await paginate(
       this.prisma.user,
@@ -580,7 +691,7 @@ export class UserService {
       name: true,
       email: true,
       avatar: true,
-      status:true,
+      status: true,
       user_information: {
         select: {
           id: true,

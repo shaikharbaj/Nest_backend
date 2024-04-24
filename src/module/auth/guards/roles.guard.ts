@@ -19,6 +19,7 @@ export class RolesGuard implements CanActivate {
       'roles',
       context.getHandler(),
     );
+    console.log(requiredRoles)
     if (!requiredRoles || requiredRoles.length === 0) {
       // No roles specified for this endpoint, so allow access
       return true;
