@@ -24,6 +24,7 @@ model User {
   status           Boolean          @default(true)
   role_id          Int
   role             Roles            @relation(fields: [role_id], references: [id])
+  banner           Banner[]
 }
 
 model userInformation {
@@ -53,4 +54,19 @@ model Roles {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   users     User[]
+}
+
+model Banner {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  start_date  DateTime
+  end_date    DateTime
+  imageUrl    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user_id     Int
+  user        User     @relation(fields: [user_id], references: [id])
+
+  @@map("banner")
 }

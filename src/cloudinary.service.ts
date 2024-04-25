@@ -16,12 +16,23 @@ export class CloudinaryService {
     file: Express.Multer.File,
   ): Promise<UploadApiResponse | UploadApiErrorResponse> {
     return new Promise((resolve, reject) => {
-      const upload = v2.uploader.upload_stream({folder:"nest"},(error, result) => {
+      const upload = v2.uploader.upload_stream({ folder: "nest" }, (error, result) => {
         if (error) return reject(error);
         resolve(result);
       });
 
       toStream(file.buffer).pipe(upload);
+    });
+  }
+
+  async removeImage(
+    public_id: string,
+  ): Promise<UploadApiResponse | UploadApiErrorResponse> {
+    return new Promise((resolve, reject) => {
+      const upload = v2.uploader.destroy(public_id, (error, result) => {
+        if (error) return reject(error);
+        resolve(result);
+      });
     });
   }
 }
