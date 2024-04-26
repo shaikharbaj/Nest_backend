@@ -59,6 +59,7 @@ export class UserService {
 
     //comopair
     const checkpassword = await bcrypt.compare(data.password, user.password);
+  
     if (!checkpassword) {
       throw new UnauthorizedException('Invalid credintials');
     }

@@ -6,15 +6,20 @@ import { FileValidationPipe } from 'src/exceptions/filetypeandsize';
 import { createBannerDTO } from './dto/createbannerDto';
 import { Auth } from '../user/dto/authdto';
 import { JwtGuard } from '../user/guards/jwt.guards';
+import { updateBannerDTO } from './dto/updatebannerDto';
 
 @Controller('banner')
 export class BannerController {
     constructor(readonly bannerServive: BannerService) { }
     @Get()
-    async getallbanner(@Query() payload: any,@Res() response: Response) {
+    async getallbannerwithpagination(@Query() payload: any,@Res() response: Response) {
         const { page, searchTerm }: { page: number; searchTerm: string } = payload;
     // return await this.userservice.getallusers(Number(page), searchTerm);
-        return await this.bannerServive.getAllBanners(Number(page),searchTerm,response)
+        return await this.bannerServive.getAllBannerswithpagination(Number(page),searchTerm,response)
+    }
+    @Get("/all")
+    async getallbanners(@Res() response:Response){
+           return await this.bannerServive.getallbanners(response);
     }
     @Get(":id")
     async getbannerById(@Param("id") id: number, @Res() response: Response) {
@@ -35,7 +40,7 @@ export class BannerController {
     @UseGuards(JwtGuard)
     @UseInterceptors(FileInterceptor('banner'))
     @Patch("/edit/:id")
-    async editbanner(@Param("id") id: number, @Body() data: any, @UploadedFile(FileValidationPipe) file: Express.Multer.File, @Res() response: Response) {
+    async editbanner(@Param("id") id: number, @Body() data: updateBannerDTO, @UploadedFile(FileValidationPipe) file: Express.Multer.File, @Res() response: Response) {
         return await this.bannerServive.updatebanner(file, data, id, response);
     }
 
