@@ -102,6 +102,7 @@ export class BannerService {
     async getallbanners(response: Response) {
         try {
             const currentdate = new Date().toISOString();
+            console.log(currentdate);
             const allbanners = await this.prisma.banner.findMany({
                 select: {
                     id: true,
@@ -117,7 +118,9 @@ export class BannerService {
                         { end_date: { gte: currentdate } }   // End date is greater than or equal to the current date
                     ]
                 }
+
             });
+            console.log(allbanners);
             return response
                 .status(HttpStatus.OK)
                 .json({ success: true, message: 'banner fetch successfully', data: allbanners });
