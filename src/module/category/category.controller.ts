@@ -22,6 +22,10 @@ export class CategoryController {
     async getAllCategory(@Res() res: Response) {
         return await this.categoryService.getAllCategories(res);
     }
+    @Get(":id")
+    async getcategorybyID(@Param("id") id:number,@Res() res: Response) {
+        return await this.categoryService.getcategorybyId(id,res);
+    }
     @Delete("delete/:id")
     async deleteCategory(@Param("id") id: number, @Res() res: Response) {
         return await this.categoryService.deleteCategory(id, res)

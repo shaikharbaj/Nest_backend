@@ -69,6 +69,18 @@ export class CategoryService {
             return res.status(HttpStatus.BAD_REQUEST).json({ success: false, message: error.message })
         }
     }
+    async getcategorybyId(id: number, res: Response) {
+        try {
+            const data = await this.prisma.category.findFirst({
+                where: {
+                    id: Number(id)
+                }
+            })
+            return res.status(HttpStatus.OK).json({ success: true, message: "cataegory fetch successfully.!", data });
+        } catch (error) {
+            return res.status(HttpStatus.BAD_REQUEST).json({ success: false, message: error.message })
+        }
+    }
     async editcategory(payload: any, id: number, res: Response) {
         try {
 
