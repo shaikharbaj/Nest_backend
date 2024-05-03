@@ -72,11 +72,13 @@ model Banner {
 }
 
 model Category {
-  id        Int      @id @default(autoincrement())
+  id        Int        @id @default(autoincrement())
   name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  parent_id Int      @default(0)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  parent    Category?  @relation("ParentCategory", fields: [parent_id], references: [id])
+  parent_id Int?
+  Category  Category[] @relation("ParentCategory")
 
   @@map("category")
 }
