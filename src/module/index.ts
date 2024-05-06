@@ -5,6 +5,8 @@ import { PracticeModule } from './practice/practice.module'
 import { EmailModule } from "./email/email.module";
 import { RoleModule } from "./role/role.module";
 import { CategoryModule } from "./category/category.module";
+import { BlogModule } from "./blog/blog.module";
+import { BannerModule } from "./banner/banner.module";
 export {
     PrismaModule,
     UserModule,
@@ -12,6 +14,8 @@ export {
     PracticeModule,
     EmailModule,
     RoleModule,
-    CategoryModule
+    CategoryModule,
+    BlogModule,
+    BannerModule
     
 }
