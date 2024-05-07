@@ -7,22 +7,22 @@ export class BlogService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly cloudinary: CloudinaryService,
-  ) {}
+  ) { }
 
   public async extract_public(url: string) {
     const regex = /\/v\d+\/(\w+)\/\w+\.\w+$/;
     const match = url.match(regex);
     const publicID = match
-        ? match[0].slice(1).split('.')[0].split('/').slice(1, 3).join('/')
-        : null;
+      ? match[0].slice(1).split('.')[0].split('/').slice(1, 3).join('/')
+      : null;
     return publicID;
-}
+  }
 
-  async removeImage(){
-         const imageUrl = "https://res.cloudinary.com/dj48ilwse/image/upload/v1715011273/nest/bq427nfsjhsysnstxvte.png"
+  async removeImage() {
+    const imageUrl = "https://res.cloudinary.com/dj48ilwse/image/upload/v1715011273/nest/bq427nfsjhsysnstxvte.png"
 
-         const public_id = await this.extract_public(imageUrl);
-         console.log(public_id);
+    const public_id = await this.extract_public(imageUrl);
+    console.log(public_id);
   }
 
   async addblog(
@@ -32,6 +32,7 @@ export class BlogService {
     res: Response,
   ) {
     try {
+
       let fileUrl = '';
       if (file) {
         const result = await this.cloudinary.uploadImage(file);
@@ -42,7 +43,7 @@ export class BlogService {
           title: data.title,
           description: data.description,
           image: fileUrl,
-          category_id: Number(data.category_id),
+          category_id: Number(data.subcategory_id),
           user_id: Number(auth.userId),
         },
       });
@@ -66,7 +67,7 @@ export class BlogService {
           id: true,
           title: true,
           description: true,
-          image:true,
+          image: true,
           createdAt: true,
           updatedAt: true,
           user_id: true,
@@ -100,12 +101,23 @@ export class BlogService {
 
   async getblogById(id: number, res: Response) {
     try {
+      console.log(id)
       const checkblogexist = await this.prisma.blog.findFirst({
+        // select:{
+        //      category_id:true,
+        //      category:{
+        //             select:{
+        //                  name:true,
+        //                  id:true,
+        //                  parent_id:true
+        //             }
+        //      }
+        // },
         select: {
           id: true,
           title: true,
           description: true,
-          image:true,
+          image: true,
           createdAt: true,
           updatedAt: true,
           user_id: true,
@@ -119,8 +131,8 @@ export class BlogService {
           category_id: true,
           category: {
             select: {
-              id: true,
-              name: true,
+              name:true,
+              parent_id: true
             },
           },
         },
@@ -128,6 +140,7 @@ export class BlogService {
           id: Number(id),
         },
       });
+     
       if (!checkblogexist) {
         throw new Error('no blog found with this id');
       }
@@ -177,7 +190,7 @@ export class BlogService {
         if (!checkCategoryExist) {
           throw new Error('no category found with this id');
         }
-        payload['category_id'] = Number(data.category_id);
+        payload['category_id'] = Number(data.subcategory_id);
       }
       if (file) {
         //remove previous......
@@ -200,7 +213,7 @@ export class BlogService {
           id: true,
           title: true,
           description: true,
-          image:true,
+          image: true,
           createdAt: true,
           updatedAt: true,
           user_id: true,
@@ -236,35 +249,35 @@ export class BlogService {
     }
   }
 
-  async deleteBlog(id:number,res:Response){
-       try {
-        //check blog exist ...
-        const checkblogExist = await this.prisma.blog.findFirst({
-              where:{
-                  id:Number(id)
-              }
-        })
-        if(!checkblogExist){
-               throw new Error("no blog found with this id");
+  async deleteBlog(id: number, res: Response) {
+    try {
+      //check blog exist ...
+      const checkblogExist = await this.prisma.blog.findFirst({
+        where: {
+          id: Number(id)
         }
-        //delete blog....
-        const deletedblog = await this.prisma.blog.delete({
-                where:{
-                        id:Number(id)
-                }
-        })
+      })
+      if (!checkblogExist) {
+        throw new Error("no blog found with this id");
+      }
+      //delete blog....
+      const deletedblog = await this.prisma.blog.delete({
+        where: {
+          id: Number(id)
+        }
+      })
 
-        //remove the image from clodinary
-        await this.cloudinary.removeImage(await this.extract_public(deletedblog.image));
-        return res.status(HttpStatus.OK).json({
-            success: true,
-            message: 'blog deleted successfully',
-            data:deletedblog
-          });
-        } catch (error) {
-          return res
-            .status(HttpStatus.BAD_REQUEST)
-            .json({ success: false, error: error.message });
-        }
+      //remove the image from clodinary
+      await this.cloudinary.removeImage(await this.extract_public(deletedblog.image));
+      return res.status(HttpStatus.OK).json({
+        success: true,
+        message: 'blog deleted successfully',
+        data: deletedblog
+      });
+    } catch (error) {
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ success: false, error: error.message });
+    }
   }
 }

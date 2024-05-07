@@ -46,7 +46,6 @@ export class BlogController {
     @Res() res: Response,
     @UploadedFile(FileValidationPipe) file: Express.Multer.File,
   ) {
-    console.log(file);
     return await this.blogService.addblog(auth, data, file, res);
   }
 
@@ -67,4 +66,9 @@ export class BlogController {
   async deleteBlog(@Param('id') id: number, @Res() res: Response) {
     return await this.blogService.deleteBlog(id, res);
   }
+
+  // @Get("/get")
+  // async getdata(){
+  //       return await this.p
+  // }
 }

@@ -89,7 +89,7 @@ model Blog {
   id          Int      @id @default(autoincrement())
   title       String
   description String
-  image String
+  image       String
   category    Category @relation(fields: [category_id], references: [id])
   category_id Int
   createdAt   DateTime @default(now())
