@@ -6,6 +6,10 @@ import { CategoryService } from './category.service';
 @Controller('category')
 export class CategoryController {
     constructor(private readonly categoryService: CategoryService) { }
+    @Get("/category-for-filter")
+    async category_for_filter(@Res() res:Response){
+        return await this.categoryService.getcategoryforFilter(res);
+    }
     @Post("/add")
     async addCategory(@Body() data: any, @Res() res: Response) {
         return await this.categoryService.addCategory(data, res);
@@ -50,4 +54,5 @@ export class CategoryController {
     async deletesubCategory(@Param("id") id: number, @Res() res: Response) {
         return await this.categoryService.deletesubCategory(id, res)
     }
+
 }

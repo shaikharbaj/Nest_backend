@@ -258,4 +258,21 @@ export class CategoryService {
             return res.status(HttpStatus.BAD_REQUEST).json({ success: false, message: error.message })
         }
     }
+
+    async getcategoryforFilter(res:Response){
+        try {
+            const data = await this.prisma.category.findMany({
+                   where:{
+                        parent_id:null
+                   },
+                   include:{
+                      Category:true
+                   }
+            })
+            return res.status(HttpStatus.OK).json({ success: true, message: "allcategories successfully.!", data });
+        } catch (error) {
+            console.log(error)
+            return res.status(HttpStatus.BAD_REQUEST).json({ success: false, message: error.message })
+        }
+    }
 }
