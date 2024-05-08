@@ -43,8 +43,9 @@ export class BlogService {
           title: data.title,
           description: data.description,
           image: fileUrl,
-          category_id: Number(data.subcategory_id),
+          category_id: Number(data.category_id),
           user_id: Number(auth.userId),
+          subcategory_id: Number(data.subcategory_id)
         },
       });
 
@@ -131,16 +132,17 @@ export class BlogService {
           category_id: true,
           category: {
             select: {
-              name:true,
+              name: true,
               parent_id: true
             },
           },
+          subcategory_id: true
         },
         where: {
           id: Number(id),
         },
       });
-     
+
       if (!checkblogexist) {
         throw new Error('no blog found with this id');
       }
@@ -164,6 +166,7 @@ export class BlogService {
     res: Response,
   ) {
     try {
+      console.log(data)
       const checkblogexist = await this.prisma.blog.findFirst({
         where: {
           id: Number(id),
@@ -190,7 +193,19 @@ export class BlogService {
         if (!checkCategoryExist) {
           throw new Error('no category found with this id');
         }
-        payload['category_id'] = Number(data.subcategory_id);
+        payload['category_id'] = Number(data.category_id);
+      }
+      if (data.subcategory_id) {
+        //check category exist....
+        const checkCategoryExist = await this.prisma.category.findFirst({
+          where: {
+            id: Number(data.subcategory_id),
+          },
+        });
+        if (!checkCategoryExist) {
+          throw new Error('no sub category found with this id');
+        }
+        payload['subcategory_id'] = Number(data.subcategory_id);
       }
       if (file) {
         //remove previous......
@@ -278,6 +293,50 @@ export class BlogService {
       return res
         .status(HttpStatus.BAD_REQUEST)
         .json({ success: false, error: error.message });
+    }
+  }
+
+  async getfilteredData(payload: any, res: Response) {
+    try {
+      let filter: any = {};
+
+      // Split the selected categories into an array of integers
+      const selectedCategories = payload.selectedcategory.split(",").map((ele: string) => parseInt(ele));
+      
+      // If categories are selected
+      if (selectedCategories.length > 0) {
+        // Filter by category_id using the 'in' operator
+        filter.category_id = {
+          in: selectedCategories
+        };
+      }
+    
+      // Split the selected subcategories into an array of integers
+      const selectedSubcategories = payload.selectedsubcategory.split(",").map((ele: string) => parseInt(ele));
+    
+      // If subcategories are selected
+      if (selectedSubcategories.length > 0) {
+        // If only subcategories are selected, ignore categories
+        
+        delete filter.category_id;
+    
+        // Filter by subcategory_id using the 'in' operator
+        filter.subcategory_id = {
+          in: selectedSubcategories
+        };
+      }
+    
+      // Fetch blogs based on the constructed filter
+      const data = await this.prisma.blog.findMany({
+        where: filter // Apply the filter
+      });
+
+
+
+      return res.status(HttpStatus.OK).json({ success: true, message: "", data })
+
+    } catch (error) {
+      console.log(error)
     }
   }
 }

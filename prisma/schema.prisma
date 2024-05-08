@@ -73,29 +73,32 @@ model Banner {
 }
 
 model Category {
-  id        Int        @id @default(autoincrement())
-  name      String
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  parent    Category?  @relation("ParentCategory", fields: [parent_id], references: [id])
-  parent_id Int?
-  Category  Category[] @relation("ParentCategory")
-  blogs     Blog[]
+  id          Int        @id @default(autoincrement())
+  name        String
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  parent      Category?  @relation("ParentCategory", fields: [parent_id], references: [id])
+  parent_id   Int?
+  Category    Category[] @relation("ParentCategory")
+  blogs       Blog[]     @relation("blogcategory")
+  subcategory Blog[]     @relation("blogsubcategory")
 
   @@map("category")
 }
 
 model Blog {
-  id          Int      @id @default(autoincrement())
-  title       String
-  description String
-  image       String
-  category    Category @relation(fields: [category_id], references: [id])
-  category_id Int
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  user        User     @relation(fields: [user_id], references: [id])
-  user_id     Int
+  id             Int      @id @default(autoincrement())
+  title          String
+  description    String
+  image          String
+  category       Category @relation(name: "blogcategory", fields: [category_id], references: [id])
+  category_id    Int
+  subcategory_id Int
+  subcategory    Category @relation(name: "blogsubcategory", fields: [subcategory_id], references: [id])
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  user           User     @relation(fields: [user_id], references: [id])
+  user_id        Int
 
   @@map("blogs")
 }

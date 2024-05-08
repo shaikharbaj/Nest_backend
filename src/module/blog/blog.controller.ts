@@ -6,12 +6,13 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Res,
   UploadedFile,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { Response } from 'express';
+import { query, Response } from 'express';
 import { JwtGuard } from '../user/guards/jwt.guards';
 import { Auth } from '../user/dto/authdto';
 import { BlogService } from './blog.service';
@@ -20,11 +21,15 @@ import { FileValidationPipe } from 'src/exceptions/filetypeandsize';
 
 @Controller('blog')
 export class BlogController {
-  constructor(private readonly blogService: BlogService) {}
+  constructor(private readonly blogService: BlogService) { }
 
   @Get('/remove_image')
   async removeImage() {
     return await this.blogService.removeImage();
+  }
+  @Get("/filter")
+  async getfilteredData(@Query() paylaod: any,@Res() res:Response) {
+    return await this.blogService.getfilteredData(paylaod,res);
   }
   @UseGuards(JwtGuard)
   @Get('/all')
@@ -66,6 +71,9 @@ export class BlogController {
   async deleteBlog(@Param('id') id: number, @Res() res: Response) {
     return await this.blogService.deleteBlog(id, res);
   }
+
+
+
 
   // @Get("/get")
   // async getdata(){
