@@ -7,7 +7,7 @@ export class BlogService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly cloudinary: CloudinaryService,
-  ) { }
+  ) {}
 
   public async extract_public(url: string) {
     const regex = /\/v\d+\/(\w+)\/\w+\.\w+$/;
@@ -19,7 +19,8 @@ export class BlogService {
   }
 
   async removeImage() {
-    const imageUrl = "https://res.cloudinary.com/dj48ilwse/image/upload/v1715011273/nest/bq427nfsjhsysnstxvte.png"
+    const imageUrl =
+      'https://res.cloudinary.com/dj48ilwse/image/upload/v1715011273/nest/bq427nfsjhsysnstxvte.png';
 
     const public_id = await this.extract_public(imageUrl);
     console.log(public_id);
@@ -32,7 +33,6 @@ export class BlogService {
     res: Response,
   ) {
     try {
-
       let fileUrl = '';
       if (file) {
         const result = await this.cloudinary.uploadImage(file);
@@ -45,7 +45,7 @@ export class BlogService {
           image: fileUrl,
           category_id: Number(data.category_id),
           user_id: Number(auth.userId),
-          subcategory_id: Number(data.subcategory_id)
+          subcategory_id: Number(data.subcategory_id),
         },
       });
 
@@ -102,7 +102,7 @@ export class BlogService {
 
   async getblogById(id: number, res: Response) {
     try {
-      console.log(id)
+      console.log(id);
       const checkblogexist = await this.prisma.blog.findFirst({
         // select:{
         //      category_id:true,
@@ -133,10 +133,10 @@ export class BlogService {
           category: {
             select: {
               name: true,
-              parent_id: true
+              parent_id: true,
             },
           },
-          subcategory_id: true
+          subcategory_id: true,
         },
         where: {
           id: Number(id),
@@ -166,7 +166,7 @@ export class BlogService {
     res: Response,
   ) {
     try {
-      console.log(data)
+      console.log(data);
       const checkblogexist = await this.prisma.blog.findFirst({
         where: {
           id: Number(id),
@@ -269,25 +269,27 @@ export class BlogService {
       //check blog exist ...
       const checkblogExist = await this.prisma.blog.findFirst({
         where: {
-          id: Number(id)
-        }
-      })
+          id: Number(id),
+        },
+      });
       if (!checkblogExist) {
-        throw new Error("no blog found with this id");
+        throw new Error('no blog found with this id');
       }
       //delete blog....
       const deletedblog = await this.prisma.blog.delete({
         where: {
-          id: Number(id)
-        }
-      })
+          id: Number(id),
+        },
+      });
 
       //remove the image from clodinary
-      await this.cloudinary.removeImage(await this.extract_public(deletedblog.image));
+      await this.cloudinary.removeImage(
+        await this.extract_public(deletedblog.image),
+      );
       return res.status(HttpStatus.OK).json({
         success: true,
         message: 'blog deleted successfully',
-        data: deletedblog
+        data: deletedblog,
       });
     } catch (error) {
       return res
@@ -298,45 +300,42 @@ export class BlogService {
 
   async getfilteredData(payload: any, res: Response) {
     try {
-      let filter: any = {};
+      const selectedCategories: number[] = payload.selectedcategory
+        ? payload.selectedcategory.toString().split(',').map(Number)
+        : [];
 
-      // Split the selected categories into an array of integers
-      const selectedCategories = payload.selectedcategory.split(",").map((ele: string) => parseInt(ele));
-      
-      // If categories are selected
-      if (selectedCategories.length > 0) {
-        // Filter by category_id using the 'in' operator
-        filter.category_id = {
-          in: selectedCategories
-        };
-      }
-    
-      // Split the selected subcategories into an array of integers
-      const selectedSubcategories = payload.selectedsubcategory.split(",").map((ele: string) => parseInt(ele));
-    
-      // If subcategories are selected
-      if (selectedSubcategories.length > 0) {
-        // If only subcategories are selected, ignore categories
-        
-        delete filter.category_id;
-    
-        // Filter by subcategory_id using the 'in' operator
-        filter.subcategory_id = {
-          in: selectedSubcategories
-        };
-      }
-    
-      // Fetch blogs based on the constructed filter
-      const data = await this.prisma.blog.findMany({
-        where: filter // Apply the filter
-      });
+      const selectedSubcategories: number[] = payload.selectedsubcategory
+        ? payload.selectedsubcategory.toString().split(',').map(Number)
+        : [];
 
+        let filter: any = {};
+        if(selectedCategories?.length>0){
+            filter ={
+                OR: selectedCategories.map(categoryId => ({
+                    category_id: categoryId,
+                    ...(selectedSubcategories.length > 0 && { subcategory_id: { in: selectedSubcategories } })
+                }))
+            }
+        }
 
+      const filteredBlogs = await this.prisma.blog.findMany({
+        where: filter,
+        include: {
+            category: true,
+            subcategory: true,
+            user: true
+        }
+    });
 
-      return res.status(HttpStatus.OK).json({ success: true, message: "", data })
-
+      return res
+        .status(HttpStatus.OK)
+        .json({
+          success: true,
+          message: 'data fetch successfully',
+          data: filteredBlogs,
+        });
     } catch (error) {
-      console.log(error)
+      console.log(error);
     }
   }
 }
