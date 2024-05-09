@@ -59,7 +59,7 @@ export class UserService {
 
     //comopair
     const checkpassword = await bcrypt.compare(data.password, user.password);
-  
+
     if (!checkpassword) {
       throw new UnauthorizedException('Invalid credintials');
     }
@@ -124,8 +124,10 @@ export class UserService {
           select: {
             id: true,
             name: true,
+            permissions: true
           },
         },
+
       },
       where: { email, role_id: Number(checkuserRole.id) },
     });

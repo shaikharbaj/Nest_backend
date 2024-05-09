@@ -50,11 +50,12 @@ model OTP {
 }
 
 model Roles {
-  id        Int      @id @default(autoincrement())
-  name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  users     User[]
+  id          Int                @id @default(autoincrement())
+  name        String
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  users       User[]
+  permissions role_permissions[]
 }
 
 model Banner {
@@ -101,4 +102,26 @@ model Blog {
   user_id        Int
 
   @@map("blogs")
+}
+
+model Permissions {
+  id              Int                @id @default(autoincrement())
+  slug            String             @unique
+  permission_name String
+  description     String
+  module          String
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  createdBy       Int
+  isActive        Boolean            @default(false)
+  roles           role_permissions[]
+}
+
+model role_permissions {
+  role_id       Int
+  role          Roles       @relation(fields: [role_id], references: [id])
+  permission_id Int
+  permission    Permissions @relation(fields: [permission_id], references: [id])
+
+  @@id([role_id, permission_id])
 }
