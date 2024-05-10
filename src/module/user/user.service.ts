@@ -161,11 +161,18 @@ export class UserService {
           select: {
             id: true,
             name: true,
+            permissions:{
+                 select:{
+                     permission_id:true,
+                     permission:true
+                 }
+            }
           },
         },
       },
       where: {
-        email, NOT: {
+        email:email,
+         NOT: {
           role_id: checkuserRole.id
         }
       },
@@ -308,9 +315,10 @@ export class UserService {
         userId: admin.id,
         email: admin.email,
         name: admin.name,
-        role: admin.role,
+        roles:[admin.role.name],
         avatar: admin.avatar,
         user_information: admin.user_information,
+        permissions : admin?.role?.permissions.map((p)=>p?.permission?.slug)
       };
       const token = await this.generateToken(payload, { expiresIn: '10h' });
       return {

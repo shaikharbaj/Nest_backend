@@ -33,6 +33,8 @@ import { updatePasswordwithOTPDTO } from './dto/updatePasswordwithOTP.dto';
 import { Roles } from '../auth/decorator/roles.decorator';
 import { Role } from 'src/constants/role';
 import { RolesGuard } from '../auth/guards/roles.guard';
+import { HasPermission } from '../auth/decorator/has-permission.decorator';
+import { userModulePermission } from 'src/constants/permissions';
 
 type verifyOTPType = {
   email: string;
@@ -49,14 +51,16 @@ export class UserController {
     return this.userservice.getalldashboardcount(response);
   }
 
-  @Roles(Role.ADMIN, Role.SUBADMIN)
+  // @Roles(Role.ADMIN, Role.SUBADMIN)
+  @HasPermission(userModulePermission.Toggle)
   @UseGuards(JwtGuard, RolesGuard)
   @Patch("/togglestatus/:id")
   async togglestatus(@Res() response: Response, @Param("id") id: number) {
     return await this.userservice.togglestatus(response, id);
   }
 
-  @Roles(Role.ADMIN, Role.SUBADMIN)
+  // @Roles(Role.ADMIN, Role.SUBADMIN)
+  @HasPermission(userModulePermission.LIST)
   @UseGuards(JwtGuard, RolesGuard)
   @Get()
   async getallusers(@Query() payload: any) {
@@ -150,10 +154,12 @@ export class UserController {
   }
 
   //chnaga role....
-  @Roles(Role.ADMIN)
+  // @Roles(Role.ADMIN)
+  @HasPermission(userModulePermission.UPDATE)
   @UseGuards(JwtGuard, RolesGuard)
   @Patch("/change_role")
   async changeRole(@Body() data: any, @Res() response: Response) {
+    console.log("CALLED");
     return await this.userservice.change_role(response, data);
   }
 }
