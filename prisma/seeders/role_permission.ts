@@ -21,38 +21,38 @@ async function main() {
                 permission_id: permission.id
             });
         });
-       await prisma.role_permissions.createMany({ data: adminPermissions });
-       console.log("admin role-permission seeding end...!");
-        //admin role permission seeded..
+        await prisma.role_permissions.createMany({ data: adminPermissions });
+        console.log("admin role-permission seeding end...!");
+        //admin role permission seeded.......
         //subadmin role permission start.....
         console.log("subadmin role-permission seeding start...!");
         await prisma.role_permissions.deleteMany({ where: { role_id: subadminRole.id } });
         const subadminnpermissions = await prisma.permissions.findMany({
-               where:{
-                   OR:[
-                      {slug:userModulePermission.LIST},
-                      {slug:userModulePermission.ADD},
-                      {slug:userModulePermission.UPDATE},
-                      {slug:categoryModulePermission.LIST},
-                      {slug:categoryModulePermission.ADD},
-                      {slug:categoryModulePermission.UPDATE},
-                      {slug:categoryModulePermission.DELETE},
-                      {slug:subCategoryModulePermission.LIST},
-                      {slug:subCategoryModulePermission.ADD},
-                      {slug:subCategoryModulePermission.UPDATE},
-                      {slug:subCategoryModulePermission.DELETE},
-                      {slug:bannerModulePermission.LIST},
-                      {slug:bannerModulePermission.ADD},
-                      {slug:bannerModulePermission.UPDATE},
-                      {slug:bannerModulePermission.DELETE},
-                      {slug:blogModulePermissions.LIST},
-                      {slug:blogModulePermissions.ADD},
-                      {slug:blogModulePermissions.UPDATE},
-                      {slug:blogModulePermissions.DELETE},
-                   ]
-               }
+            where: {
+                OR: [
+                    { slug: userModulePermission.LIST },
+                    { slug: userModulePermission.ADD },
+                    { slug: userModulePermission.UPDATE },
+                    { slug: categoryModulePermission.LIST },
+                    { slug: categoryModulePermission.ADD },
+                    { slug: categoryModulePermission.UPDATE },
+                    { slug: categoryModulePermission.DELETE },
+                    { slug: subCategoryModulePermission.LIST },
+                    { slug: subCategoryModulePermission.ADD },
+                    { slug: subCategoryModulePermission.UPDATE },
+                    { slug: subCategoryModulePermission.DELETE },
+                    { slug: bannerModulePermission.LIST },
+                    { slug: bannerModulePermission.ADD },
+                    { slug: bannerModulePermission.UPDATE },
+                    { slug: bannerModulePermission.DELETE },
+                    { slug: blogModulePermissions.LIST },
+                    { slug: blogModulePermissions.ADD },
+                    { slug: blogModulePermissions.UPDATE },
+                    { slug: blogModulePermissions.DELETE },
+                ]
+            }
         })
-        const subAdminPermission=[];
+        const subAdminPermission = [];
         subadminnpermissions.forEach((permission: any, permissionIndex: number) => {
             subAdminPermission.push({
                 role_id: subadminRole.id,

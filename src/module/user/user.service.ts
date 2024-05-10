@@ -161,18 +161,18 @@ export class UserService {
           select: {
             id: true,
             name: true,
-            permissions:{
-                 select:{
-                     permission_id:true,
-                     permission:true
-                 }
+            permissions: {
+              select: {
+                permission_id: true,
+                permission: true
+              }
             }
           },
         },
       },
       where: {
-        email:email,
-         NOT: {
+        email: email,
+        NOT: {
           role_id: checkuserRole.id
         }
       },
@@ -294,9 +294,10 @@ export class UserService {
         userId: user.id,
         email: user.email,
         name: user.name,
-        role: user.role,
+        roles: [user.role.name],
         avatar: user.avatar,
         user_information: user.user_information,
+        permissions: user?.role?.permissions.map((p: any) => p?.permission?.slug)
       };
       const token = await this.generateToken(payload, { expiresIn: '10h' });
       return {
@@ -315,10 +316,10 @@ export class UserService {
         userId: admin.id,
         email: admin.email,
         name: admin.name,
-        roles:[admin.role.name],
+        roles: [admin.role.name],
         avatar: admin.avatar,
         user_information: admin.user_information,
-        permissions : admin?.role?.permissions.map((p)=>p?.permission?.slug)
+        permissions: admin?.role?.permissions.map((p) => p?.permission?.slug)
       };
       const token = await this.generateToken(payload, { expiresIn: '10h' });
       return {
@@ -850,7 +851,7 @@ export class UserService {
     }
   }
 
-  //reset password using link....
+  //reset password using link....!
   async resetpasswordlink(
     id: number,
     token: string,
