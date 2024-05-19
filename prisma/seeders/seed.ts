@@ -1,11 +1,12 @@
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
+import { name } from 'ejs';
 const prisma = new PrismaClient();
 
 async function main() {
   console.log('role seeding start...!');
   //seed role........
-  const roles = [{ name: 'ADMIN' }, { name: 'SUBADMIN' }, { name: 'USER' }];
+  const roles = [{ name: 'ADMIN' }, { name: 'SUBADMIN' }, { name: 'USER' },{name:"SUPPLIER"}];
 
   //check adminrole exist or not if not exist then only create....
   for (const i of roles) {

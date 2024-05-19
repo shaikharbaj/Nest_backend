@@ -31,3 +31,9 @@ export const userModulePermission = {
     UPDATE: 'edit_user',
     Toggle: 'toggle_user',
 }
+export const productModulePermission = {
+    LIST :'list_products',
+    ADD:'add_product',
+    UPDATE:'update_product',
+    DELETE:'delete_product' 
+}

@@ -7,6 +7,8 @@ import { RoleModule } from "./role/role.module";
 import { CategoryModule } from "./category/category.module";
 import { BlogModule } from "./blog/blog.module";
 import { BannerModule } from "./banner/banner.module";
+import { SupplierModule } from "./supplier/supplier.module";
+import { ProductModule } from "./product/product.module";
 export {
     PrismaModule,
     UserModule,
@@ -16,6 +18,7 @@ export {
     RoleModule,
     CategoryModule,
     BlogModule,
-    BannerModule
-    
+    BannerModule,
+    SupplierModule,
+    ProductModule
 }

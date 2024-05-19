@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
-import { userModulePermission, categoryModulePermission, subCategoryModulePermission, blogModulePermissions, bannerModulePermission } from '../../src/constants/permissions';
+import { userModulePermission, categoryModulePermission, subCategoryModulePermission, blogModulePermissions, bannerModulePermission, productModulePermission } from '../../src/constants/permissions';
 const prisma = new PrismaClient();
 
 async function main() {
@@ -263,6 +263,54 @@ async function main() {
             module: 'BLOGS',
             permission_name: "update the blogs",
             createdBy: Number(admin.id), isActive: true
+        }
+    })
+
+    //product module permission seeding start....
+    await prisma.permissions.upsert({
+        where:{slug:productModulePermission.LIST},
+        update:{},
+        create:{
+            description: "the permission allow logged in user to list the product",
+            slug: productModulePermission.LIST,
+            module: 'PRODUCTS',
+            permission_name: "list the product",
+            createdBy: Number(admin.id), isActive: true  
+        }
+    })
+
+    await prisma.permissions.upsert({
+        where:{slug:productModulePermission.ADD},
+        update:{},
+        create:{
+            description: "the permission allow logged in user to ADD the product",
+            slug: productModulePermission.ADD,
+            module: 'PRODUCTS',
+            permission_name: "add the product",
+            createdBy: Number(admin.id), isActive: true  
+        }
+    })
+
+    await prisma.permissions.upsert({
+        where:{slug:productModulePermission.UPDATE},
+        update:{},
+        create:{
+            description: "the permission allow logged in user to UPDATE the product",
+            slug: productModulePermission.UPDATE,
+            module: 'PRODUCTS',
+            permission_name: "update the product",
+            createdBy: Number(admin.id), isActive: true  
+        }
+    })
+    await prisma.permissions.upsert({
+        where:{slug:productModulePermission.DELETE},
+        update:{},
+        create:{
+            description: "the permission allow logged in user to DELETE the product",
+            slug: productModulePermission.DELETE,
+            module: 'PRODUCTS',
+            permission_name: "delete the product",
+            createdBy: Number(admin.id), isActive: true  
         }
     })
     console.log("permission seeding end...!");
