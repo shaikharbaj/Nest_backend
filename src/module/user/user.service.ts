@@ -245,9 +245,9 @@ export class UserService {
     }
 
     //check user roleID
-    const UserRoleId = await this.prisma.roles.findFirst({
-      where: { name: 'USER' },
-    });
+    // const UserRoleId = await this.prisma.roles.findFirst({
+    //   where: { name: 'USER' },
+    // });
     //create new User with type user....
     const userroleId = await this.prisma.roles.findFirst({
       where: { name: 'USER' },

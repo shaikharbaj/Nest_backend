@@ -26,7 +26,15 @@ model User {
   role             Roles            @relation(fields: [role_id], references: [id])
   banner           Banner[]
   blogs            Blog[]
+  // usertype_id      Int?
+  // userType         UserType?        @relation(fields: [usertype_id], references: [id])
 }
+
+// model UserType {
+//   id   Int    @id @default(autoincrement())
+//   name String
+//   user User[]
+// }
 
 model userInformation {
   id            Int       @id @default(autoincrement())
@@ -57,7 +65,6 @@ model Roles {
   users       User[]
   suppliers   Supplier[]
   permissions role_permissions[]
-
 }
 
 model Banner {
@@ -76,15 +83,17 @@ model Banner {
 }
 
 model Category {
-  id          Int        @id @default(autoincrement())
-  name        String
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  parent      Category?  @relation("ParentCategory", fields: [parent_id], references: [id])
-  parent_id   Int?
-  Category    Category[] @relation("ParentCategory")
-  blogs       Blog[]     @relation("blogcategory")
-  subcategory Blog[]     @relation("blogsubcategory")
+  id                  Int        @id @default(autoincrement())
+  name                String
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
+  parent              Category?  @relation("ParentCategory", fields: [parent_id], references: [id])
+  parent_id           Int?
+  Category            Category[] @relation("ParentCategory")
+  blogs               Blog[]     @relation("blogcategory")
+  subcategory         Blog[]     @relation("blogsubcategory")
+  products            Product[]  @relation("CategoryProducts")
+  subcategoryProducts Product[]  @relation("SubcategoryProducts")
 
   @@map("category")
 }
@@ -130,27 +139,32 @@ model role_permissions {
 
 //supplier......
 model Supplier {
-     id Int @id @default(autoincrement())
-     name String
-     email String @unique
-     password String
-     avatar String?
-     address String?
-     status Boolean @default(true)
-     createdAt DateTime @default(now())
-     updateAt DateTime @updatedAt
-     role_id Int 
-     role Roles @relation(fields: [role_id],references: [id])
+  id        Int       @id @default(autoincrement())
+  name      String
+  email     String    @unique
+  password  String
+  avatar    String?
+  address   String?
+  status    Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updateAt  DateTime  @updatedAt
+  role_id   Int
+  role      Roles     @relation(fields: [role_id], references: [id])
+  products  Product[]
 }
 
-// model Product{
-//       id Int @id @default(autoincrement())
-//       name String
-//       description String
-//       originalprice Float
-//       discountprice Float?
-//       stock Int
-//       image String
-
-
-// }
+model Product {
+  id             Int       @id @default(autoincrement())
+  name           String
+  description    String
+  originalprice  Float
+  discountprice  Float?
+  stock          Int
+  image          String
+  category_id    Int
+  subcategory_id Int
+  category       Category  @relation("CategoryProducts", fields: [category_id], references: [id])
+  subcategory    Category? @relation("SubcategoryProducts", fields: [subcategory_id], references: [id])
+  supplier_id    Int
+  supplier       Supplier  @relation(fields: [supplier_id], references: [id])
+}
