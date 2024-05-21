@@ -32,8 +32,28 @@ export const userModulePermission = {
     Toggle: 'toggle_user',
 }
 export const productModulePermission = {
-    LIST :'list_products',
-    ADD:'add_product',
-    UPDATE:'update_product',
-    DELETE:'delete_product' 
+    LIST: 'list_products',
+    ADD: 'add_product',
+    UPDATE: 'update_product',
+    DELETE: 'delete_product'
 }
+
+
+export const cartModulePermission = {
+    LIST: 'list_cart',
+    ADD: 'add_product_cart',
+    UPDATE: 'update_cart_product',
+    DELETE: 'delete_cart_product'
+}
+export const orderModulePermission = {
+    LIST: "list_order",
+    CREATE: "create_order",
+    DELETE: "delete_order"
+}
+
+// CUSTOMER: [
+//     'list_product', 'list_order', 'create_order', 'delete_order', 'list_cart', 'create_cart', 'add_product_cart', 'delete_cart_product'
+//   ],
+//   SUPPLIER: [
+//     'list_product', 'create_product', 'update_product', 'delete_product', 'list_order', 'create_order', 'update_order', 'delete_order', 'list_cart', 'create_cart', 'add_product_cart', 'delete_cart_product'
+//   ]

@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { userModulePermission, categoryModulePermission, subCategoryModulePermission, blogModulePermissions, bannerModulePermission, productModulePermission } from '../../src/constants/permissions';
+import { userModulePermission, categoryModulePermission, subCategoryModulePermission, blogModulePermissions, bannerModulePermission, productModulePermission, cartModulePermission, orderModulePermission } from '../../src/constants/permissions';
 const prisma = new PrismaClient();
 
 async function main() {
@@ -8,7 +8,7 @@ async function main() {
     const adminRole = await prisma.roles.findFirst({ where: { name: "ADMIN" } });
     const subadminRole = await prisma.roles.findFirst({ where: { name: "SUBADMIN" } })
     const userRole = await prisma.roles.findFirst({ where: { name: "USER" } })
-    const supplierRole = await prisma.roles.findFirst({where:{name:"SUPPLIER"}});
+    const supplierRole = await prisma.roles.findFirst({ where: { name: "SUPPLIER" } });
     console.log("Seeding role & permission mapping table...");
     await prisma.role_permissions.deleteMany({ where: { role_id: adminRole.id } });
     console.log("admin role-permission seeding start...!");
@@ -49,10 +49,17 @@ async function main() {
                     { slug: blogModulePermissions.ADD },
                     { slug: blogModulePermissions.UPDATE },
                     { slug: blogModulePermissions.DELETE },
-                    {slug:productModulePermission.LIST},
-                    {slug:productModulePermission.ADD},
-                    {slug:productModulePermission.UPDATE},
-                    {slug:productModulePermission.DELETE}
+                    { slug: productModulePermission.LIST },
+                    { slug: productModulePermission.ADD },
+                    { slug: productModulePermission.UPDATE },
+                    { slug: productModulePermission.DELETE },
+                    { slug: cartModulePermission.LIST },
+                    { slug: cartModulePermission.ADD },
+                    { slug: cartModulePermission.DELETE },
+                    { slug: cartModulePermission.UPDATE },
+                    { slug: orderModulePermission.CREATE },
+                    { slug: orderModulePermission.LIST },
+                    { slug: orderModulePermission.DELETE },
                 ]
             }
         })
@@ -66,32 +73,111 @@ async function main() {
         await prisma.role_permissions.createMany({ data: subAdminPermission });
         console.log("subadmin role-permission seeding end...!");
 
-        console.log('supplier role-permission seeding start');
-        await prisma.role_permissions.deleteMany({where:{role_id:supplierRole.id}})
-        const supplierPermission=[];
-        const supplier_permissions = await prisma.permissions.findMany({
+        // console.log('supplier role-permission seeding start');
+        // await prisma.role_permissions.deleteMany({ where: { role_id: supplierRole.id } })
+        // const supplierPermission=[];
+        // const supplier_permissions = await prisma.permissions.findMany({
+        //     where: {
+        //         OR: [
+        //             {slug:productModulePermission.LIST},
+        //             {slug:productModulePermission.ADD},
+        //             {slug:productModulePermission.UPDATE},
+        //             {slug:productModulePermission.DELETE}
+        //         ]
+        //     }
+        // })
+        // supplier_permissions.forEach((permission: any, permissionIndex: number) => {
+        //     supplierPermission.push({
+        //         role_id: supplierRole.id,
+        //         permission_id: permission.id
+        //     });
+        // });
+
+        // await prisma.role_permissions.createMany({ data:supplierPermission });
+        // console.log("supplier role-permission seeding end...!");
+
+        //supplier user type permisssion seeding start....
+        console.log("supplier user type permisssion seeding start....")
+        await prisma.role_permissions.deleteMany({
             where: {
-                OR: [
-                    {slug:productModulePermission.LIST},
-                    {slug:productModulePermission.ADD},
-                    {slug:productModulePermission.UPDATE},
-                    {slug:productModulePermission.DELETE}
+                AND: [
+                    { role_id: userRole.id }, { userType: "SUPPLIER" }
                 ]
             }
         })
-        supplier_permissions.forEach((permission: any, permissionIndex: number) => {
+
+        //seeding supplier permission
+        const supplier_permission = await prisma.permissions.findMany({
+            where: {
+                OR: [
+                    { slug: productModulePermission.LIST },
+                    { slug: productModulePermission.ADD },
+                    { slug: productModulePermission.UPDATE },
+                    { slug: productModulePermission.DELETE }
+                ]
+            }
+        })
+
+        //
+        const supplierPermission = [];
+        supplier_permission.forEach((permission: any, permissionIndex: number) => {
             supplierPermission.push({
-                role_id: supplierRole.id,
-                permission_id: permission.id
+                role_id: userRole.id,
+                permission_id: permission.id,
+                userType: "SUPPLIER"
             });
         });
+        await prisma.role_permissions.createMany({
+            data: supplierPermission
+        })
 
-        await prisma.role_permissions.createMany({ data:supplierPermission });
-        console.log("supplier role-permission seeding end...!");
+        console.log("supplier permission seeded successfully");
+
+        //customer permission seeding order......
+        console.log("customer permission seeding order......");
+        await prisma.role_permissions.deleteMany({
+            where: {
+                AND: [{ role_id: userRole.id }, { userType: "CUSTOMER" }]
+            }
+        })
+
+        const customer_permission = await prisma.permissions.findMany({
+            where: {
+                OR: [
+                    { slug: cartModulePermission.LIST },
+                    { slug: cartModulePermission.ADD },
+                    { slug: cartModulePermission.UPDATE },
+                    { slug: cartModulePermission.DELETE },
+                    { slug: orderModulePermission.LIST },
+                    { slug: orderModulePermission.CREATE },
+                    { slug: orderModulePermission.DELETE },
+                ]
+            }
+        })
+        console.log(customer_permission);
+        //
+        const customerPermission = [];
+        customer_permission.forEach((permission: any, permissionIndex: number) => {
+            customerPermission.push({
+                role_id: userRole.id,
+                permission_id: permission.id,
+                userType: "CUSTOMER"
+            });
+        });
+        console.log(customer_permission);
+        try {
+            await prisma.role_permissions.createMany({
+                data: customerPermission
+            })
+        } catch (error) {
+            console.log(error);
+        }
+
+        console.log("customer permission seeded successfully");
+
 
     }
 }
-
 main()
     .catch((e) => {
         console.log(e);

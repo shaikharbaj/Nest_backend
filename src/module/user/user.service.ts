@@ -109,6 +109,7 @@ export class UserService {
         email: true,
         password: true,
         status: true,
+        userType: true,
         user_information: {
           select: {
             data_of_birth: true,
@@ -124,12 +125,24 @@ export class UserService {
           select: {
             id: true,
             name: true,
-            permissions: true
+            permissions: {
+              select: {
+                permission_id: true,
+                userType: true,
+                permission: {
+                  select: {
+                    id: true,
+                    slug: true,
+
+                  }
+                }
+              }
+            }
           },
         },
 
       },
-      where: { email, role_id: Number(checkuserRole.id) },
+      where: { email, role_id: Number(checkuserRole.id), userType: "CUSTOMER" },
     });
   }
 
@@ -164,7 +177,13 @@ export class UserService {
             permissions: {
               select: {
                 permission_id: true,
-                permission: true
+                permission: {
+                  select: {
+                    id: true,
+                    slug: true,
+
+                  }
+                }
               }
             }
           },
@@ -243,11 +262,6 @@ export class UserService {
         throw new InternalServerErrorException('Failed to upload image');
       }
     }
-
-    //check user roleID
-    // const UserRoleId = await this.prisma.roles.findFirst({
-    //   where: { name: 'USER' },
-    // });
     //create new User with type user....
     const userroleId = await this.prisma.roles.findFirst({
       where: { name: 'USER' },
@@ -257,34 +271,12 @@ export class UserService {
         name: data.name,
         email: data.email,
         password: hashpassword,
+        userType: "CUSTOMER",
         role_id: userroleId.id,
       },
     });
 
     return newUser;
-    // const roles = JSON.parse(data?.roles);
-    //check roles is exist or not....
-    // const checkrolesexist = await this.prisma.roles.findMany({
-    //       where:{
-    //            id:{
-    //               in:roles
-    //            }
-    //       }
-    // })
-
-    // const newUser = await this.prisma.user.create({
-    //   data: {
-    //     ...payload
-    //   }
-    // })
-    // const datapayload = roles.map(roleid => ({ roleId: Number(roleid), userId: Number(newUser?.id) }))
-    //add roles to the user.....
-    // const addRoles = await this.prisma.userRoles.createMany({
-    //   data: [
-    //     ...datapayload
-    //   ]
-    // })
-    // return newUser;
   }
 
   async loginuser(data: loginuserDto) {
@@ -296,9 +288,14 @@ export class UserService {
         name: user.name,
         roles: [user.role.name],
         avatar: user.avatar,
+        userType: user.userType,
         user_information: user.user_information,
-        permissions: user?.role?.permissions.map((p: any) => p?.permission?.slug)
+        permission: user?.role?.permissions.filter((p: any) => p?.userType === "CUSTOMER").map((p) => p?.permission?.slug)
       };
+      // const permission =[];
+
+      // console.log(user.role.permissions)
+      // const arr = user?.role?.permissions.filter((p: any) =>p?.userType === "CUSTOMER").map((p)=>p?.permission?.slug)
       const token = await this.generateToken(payload, { expiresIn: '10h' });
       return {
         ...payload,
@@ -308,7 +305,6 @@ export class UserService {
       throw new UnauthorizedException(error.message);
     }
   }
-
   async loginAdmin(data: loginuserDto) {
     try {
       const admin = await this.validateAdmin(data);
@@ -330,7 +326,6 @@ export class UserService {
       throw new UnauthorizedException('Invalid credintials');
     }
   }
-
   async getuserprofile(auth: any) {
     try {
       const select = {

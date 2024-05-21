@@ -13,6 +13,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum UserType {
+  SUPPLIER
+  CUSTOMER
+}
+
 model User {
   id               Int              @id @default(autoincrement())
   name             String?
@@ -24,10 +29,9 @@ model User {
   status           Boolean          @default(true)
   role_id          Int
   role             Roles            @relation(fields: [role_id], references: [id])
+  userType         UserType?
   banner           Banner[]
   blogs            Blog[]
-  // usertype_id      Int?
-  // userType         UserType?        @relation(fields: [usertype_id], references: [id])
 }
 
 // model UserType {
@@ -129,12 +133,14 @@ model Permissions {
 }
 
 model role_permissions {
+  id            Int         @id @default(autoincrement())
   role_id       Int
   role          Roles       @relation(fields: [role_id], references: [id])
+  userType      UserType?
   permission_id Int
   permission    Permissions @relation(fields: [permission_id], references: [id])
 
-  @@id([role_id, permission_id])
+  // @@id([role_id, permission_id])
 }
 
 //supplier......
