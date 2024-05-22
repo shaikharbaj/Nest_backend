@@ -43,7 +43,7 @@ type verifyOTPType = {
 @Controller('user')
 export class UserController {
   constructor(private readonly userservice: UserService) { }
-
+  
   @Roles(Role.ADMIN, Role.SUBADMIN)
   @UseGuards(JwtGuard, RolesGuard)
   @Get("/getalldashboardcount")
@@ -159,7 +159,6 @@ export class UserController {
   @UseGuards(JwtGuard, RolesGuard)
   @Patch("/change_role")
   async changeRole(@Body() data: any, @Res() response: Response) {
-    console.log("CALLED");
     return await this.userservice.change_role(response, data);
   }
 }

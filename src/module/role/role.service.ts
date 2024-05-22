@@ -51,14 +51,16 @@ export class RoleService {
         }
     }
 
-    async get_role_permission(id: number, res: Response) {
+    async get_role_permission(id: number, userType: string, res: Response) {
         try {
+            let formated_data;
             const data = await this.prisma.roles.findFirst({
                 select: {
                     id: true,
                     name: true,
                     permissions: {
                         select: {
+                            userType: true,
                             permission: true
                         }
                     }
@@ -67,10 +69,18 @@ export class RoleService {
                     id: Number(id),
                 }
             })
-            console.log(data);
-            const formated_data = await this.formatroles(data);
+            if (userType === "CUSTOMER") {
+                const newData = data.permissions.filter((u) => u.userType === "CUSTOMER");
+                console.log(newData);
+                data.permissions = newData;
+            }
+            if (userType === "SUPPLIER") {
+                const newData = data.permissions.filter((u) => u.userType === "SUPPLIER");
+                data.permissions = newData;
+            }
+            formated_data = await this.formatroles(data);
             return res.status(HttpStatus.OK).json({ message: "all role-permissions fetch successfully...!", data: formated_data })
-            //  console.log(data);
+            //  console.log(data)
         } catch (error) {
             return res.status(HttpStatus.BAD_REQUEST).json({ success: false, message: error.message });
         }

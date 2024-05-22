@@ -32,6 +32,7 @@ model User {
   userType         UserType?
   banner           Banner[]
   blogs            Blog[]
+  cart             Cart?
 }
 
 // model UserType {
@@ -160,7 +161,7 @@ model Supplier {
 }
 
 model Product {
-  id             Int       @id @default(autoincrement())
+  id             Int        @id @default(autoincrement())
   name           String
   description    String
   originalprice  Float
@@ -169,8 +170,28 @@ model Product {
   image          String
   category_id    Int
   subcategory_id Int
-  category       Category  @relation("CategoryProducts", fields: [category_id], references: [id])
-  subcategory    Category? @relation("SubcategoryProducts", fields: [subcategory_id], references: [id])
+  cartItems      CartItem[]
+  category       Category   @relation("CategoryProducts", fields: [category_id], references: [id])
+  subcategory    Category?  @relation("SubcategoryProducts", fields: [subcategory_id], references: [id])
   supplier_id    Int
-  supplier       Supplier  @relation(fields: [supplier_id], references: [id])
+  supplier       Supplier   @relation(fields: [supplier_id], references: [id])
+}
+
+//cart model.....
+model Cart {
+  id     Int        @id @default(autoincrement())
+  userId Int        @unique
+  user   User       @relation(fields: [userId], references: [id])
+  items  CartItem[]
+}
+
+model CartItem {
+  id        Int      @id @default(autoincrement())
+  cart      Cart     @relation(fields: [cartId], references: [id])
+  cartId    Int
+  product   Product  @relation(fields: [productId], references: [id])
+  productId Int
+  quantity  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

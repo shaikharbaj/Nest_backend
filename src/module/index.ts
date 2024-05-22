@@ -9,6 +9,7 @@ import { BlogModule } from "./blog/blog.module";
 import { BannerModule } from "./banner/banner.module";
 import { SupplierModule } from "./supplier/supplier.module";
 import { ProductModule } from "./product/product.module";
+import { CartModule } from "./cart/cart.module";
 export {
     PrismaModule,
     UserModule,
@@ -20,5 +21,6 @@ export {
     BlogModule,
     BannerModule,
     SupplierModule,
-    ProductModule
+    ProductModule,
+    CartModule
 }

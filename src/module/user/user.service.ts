@@ -378,6 +378,7 @@ export class UserService {
           name: true,
           email: true,
           avatar: true,
+          userType:true,
           user_information: {
             select: {
               id: true,
@@ -601,14 +602,21 @@ export class UserService {
     };
 
     //update role....
+    let payload:any={}
+    payload.role_id=data.role_id;
+    if(data.userType){
+         payload.userType = data.userType;
+    }else{
+        payload.userType = null
+    }
+    // payload.userType=data.userType;
+    console.log(payload);
     const updateduser = await this.prisma.user.update({
       select: userPayload,
       where: {
         id: Number(data.user_id),
       },
-      data: {
-        role_id: Number(data.role_id),
-      },
+      data: payload,
     });
     return response.status(HttpStatus.OK).json({
       success: true,
@@ -699,6 +707,7 @@ export class UserService {
       email: true,
       avatar: true,
       status: true,
+      userType:true,
       user_information: {
         select: {
           id: true,
