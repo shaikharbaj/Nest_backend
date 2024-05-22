@@ -101,7 +101,7 @@ export class UserService {
         name: 'USER',
       },
     });
-    return await this.prisma.user.findUnique({
+    return await this.prisma.user.findFirst({
       select: {
         id: true,
         name: true,
@@ -142,7 +142,7 @@ export class UserService {
         },
 
       },
-      where: { email, role_id: Number(checkuserRole.id), userType: "CUSTOMER" },
+      where: {AND:[{email, role_id: Number(checkuserRole.id)}, {userType: "CUSTOMER"}]  },
     });
   }
 
