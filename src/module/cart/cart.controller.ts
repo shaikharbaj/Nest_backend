@@ -35,5 +35,11 @@ export class CartController {
            return await this.cartservice.removeproductfromcart(auth,id,res);
     }
 
+    @UseGuards(JwtGuard)
+    @Get("/cartcount")
+    async getcartcount(@Auth() auth:any,@Res() res:Response){
+          return await this.cartservice.getcartcount(auth,res);
+    }
+
 
 }

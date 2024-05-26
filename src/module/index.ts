@@ -10,6 +10,7 @@ import { BannerModule } from "./banner/banner.module";
 import { SupplierModule } from "./supplier/supplier.module";
 import { ProductModule } from "./product/product.module";
 import { CartModule } from "./cart/cart.module";
+import { OrderModule } from "./order/order.module";
 export {
     PrismaModule,
     UserModule,
@@ -22,5 +23,6 @@ export {
     BannerModule,
     SupplierModule,
     ProductModule,
-    CartModule
+    CartModule,
+    OrderModule
 }

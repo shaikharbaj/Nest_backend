@@ -8,13 +8,53 @@ import { CloudinaryService } from "src/cloudinary.service";
 export class ProductService {
     constructor(private readonly prisma: PrismaService, private readonly cloudinary: CloudinaryService) { }
 
-    async getallproducts(response: Response) {
+    async getAllProductsforSupplier(auth:any,res: Response) {
         try {
-            const products = await this.prisma.product.findMany({});
-            return response.status(HttpStatus.OK).json({ message: 'all products fetch successfully', data: products });
+            const products = await this.prisma.product.findMany({
+                select:{
+                       id:true,
+                       name:true,
+                       description:true,
+                       originalprice:true,
+                       discountprice:true,
+                       category_id:true,
+                       subcategory_id:true,
+                       image:true,
+                       stock:true,
+                       category:{
+                           select:{
+                               id:true,
+                               name:true
+                           }
+                       },
+                       subcategory:{
+                           select:{
+                                id:true,
+                                name:true
+                           }
+                       },
+                       supplier_id:true,
+                       supplier:true  
+                },
+                where:{
+                     supplier_id:Number(auth?.userId)  
+                }
+            });
+            
+            return res.status(HttpStatus.OK).json({ message: 'all products fetch successfully', data: products });
         } catch (error) {
-            return response.status(HttpStatus.BAD_REQUEST).json({ message: 'error while fetching data', data: error.message });
+            return res.status(HttpStatus.BAD_REQUEST).json({ message: 'error while fetching data', data: error.message });
         }
+    }
+    async getallproducts(res:Response){
+            try {
+                const data = await this.prisma.product.findMany({
+                    
+                })
+                return res.status(HttpStatus.OK).json({ message: 'all products fetch successfully', data});
+            } catch (error) {
+                return res.status(HttpStatus.BAD_REQUEST).json({ message: error.message, success: false});
+            }
     }
     async addproduct(auth: any, data: any, file: Express.Multer.File, res: Response) {
         try {
@@ -43,7 +83,7 @@ export class ProductService {
                     category_id: Number(payload.category_id),
                     subcategory_id: Number(payload.subcategory_id),
                     image: payload.image,
-                    supplier_id: 1
+                    supplier_id: payload.supplier_id
                 }
             })
             return res.status(201).json({ success: true, message: "product added successfully", data: product })
@@ -75,6 +115,40 @@ export class ProductService {
                 }
             })
             return res.status(HttpStatus.OK).json({ success: true, message: "product fetch successfully", data: product })
+        } catch (error) {
+            return res.status(HttpStatus.BAD_REQUEST).json({ success: false, error: error.message })
+        }
+    }
+    async loadsingleproduct(name: string, res: Response) {
+        try {
+            const product = await this.prisma.product.findFirst({
+                select:{
+                    id:true,
+                    name:true,
+                    description:true,
+                    originalprice:true,
+                    discountprice:true,
+                    stock:true,
+                    category:{
+                          select:{
+                               id:true,
+                               name:true
+                          }
+                           
+                    },
+                    subcategory:{
+                           select:{
+                               id:true,
+                               name:true
+                           }
+                    },
+                    image:true,
+                },
+                where: {
+                    name: name
+                }
+            })
+            return res.status(HttpStatus.OK).json({ success: true, message: "product fetch successfully",data:product })
         } catch (error) {
             return res.status(HttpStatus.BAD_REQUEST).json({ success: false, error: error.message })
         }

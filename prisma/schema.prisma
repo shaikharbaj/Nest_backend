@@ -18,6 +18,23 @@ enum UserType {
   CUSTOMER
 }
 
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELED
+}
+
+enum PaymentStatus {
+  PAID
+  UNPAID
+}
+
+enum PaymentMethod {
+  CASH_ON_DELIVERY
+}
+
 model User {
   id               Int              @id @default(autoincrement())
   name             String?
@@ -30,9 +47,11 @@ model User {
   role_id          Int
   role             Roles            @relation(fields: [role_id], references: [id])
   userType         UserType?
+  products         Product[]
   banner           Banner[]
   blogs            Blog[]
   cart             Cart?
+  orders           Order[]
 }
 
 // model UserType {
@@ -157,11 +176,11 @@ model Supplier {
   updateAt  DateTime  @updatedAt
   role_id   Int
   role      Roles     @relation(fields: [role_id], references: [id])
-  products  Product[]
+  // products  Product[]
 }
 
 model Product {
-  id             Int        @id @default(autoincrement())
+  id             Int         @id @default(autoincrement())
   name           String
   description    String
   originalprice  Float
@@ -171,10 +190,11 @@ model Product {
   category_id    Int
   subcategory_id Int
   cartItems      CartItem[]
-  category       Category   @relation("CategoryProducts", fields: [category_id], references: [id])
-  subcategory    Category?  @relation("SubcategoryProducts", fields: [subcategory_id], references: [id])
+  category       Category    @relation("CategoryProducts", fields: [category_id], references: [id])
+  subcategory    Category?   @relation("SubcategoryProducts", fields: [subcategory_id], references: [id])
   supplier_id    Int
-  supplier       Supplier   @relation(fields: [supplier_id], references: [id])
+  supplier       User    @relation(fields: [supplier_id], references: [id])
+  orderItems     OrderItem[]
 }
 
 //cart model.....
@@ -194,4 +214,37 @@ model CartItem {
   quantity  Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+//order..............
+model Order {
+  id                   Int           @id @default(autoincrement())
+  user                 User          @relation(fields: [userId], references: [id])
+  userId               Int
+  totalPrice           Float
+  status               OrderStatus   @default(PENDING)
+  paymentStatus        PaymentStatus @default(UNPAID)
+  paymentMethod        PaymentMethod @default(CASH_ON_DELIVERY)
+  shippingName         String
+  shippingPhone        String
+  shippingEmail        String
+  shippingAddressLine1 String
+  shippingAddressLine2 String?
+  shippingCity         String
+  shippingState        String
+  shippingZipCode   String
+  shippingCountry      String
+  orderItems           OrderItem[]
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+}
+
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  order     Order   @relation(fields: [orderId], references: [id])
+  orderId   Int
+  product   Product @relation(fields: [productId], references: [id])
+  productId Int
+  quantity  Int
+  price     Float
 }

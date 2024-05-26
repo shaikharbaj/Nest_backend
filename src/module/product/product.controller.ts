@@ -11,13 +11,22 @@ export class ProductController {
 
     constructor(private readonly productservice: ProductService) { }
 
+    @UseGuards(JwtGuard)
+    @Get("/supplier/all")
+    async getAllProductsforSupplier(@Auth() auth:any,@Res() res: Response) {
+        return await this.productservice.getAllProductsforSupplier(auth,res);
+    }
     @Get("all")
-    async getAllProducts(@Res() res: Response) {
-        return await this.productservice.getallproducts(res);
+    async getallproducts(@Res() res:Response){
+         return await this.productservice.getallproducts(res);
     }
     @Get(":id")
     async getSingleProduct(@Param("id") id: number, @Res() res: Response) {
         return await this.productservice.getsingleproduct(id, res)
+    }
+    @Get("/getsingleproduct/:name")
+    async getsingleproduct(@Param("name") name: string, @Res() res: Response) {
+        return await this.productservice.loadsingleproduct(name, res)
     }
 
     @UseGuards(JwtGuard)
