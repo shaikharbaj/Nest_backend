@@ -12,6 +12,11 @@ export class CartService {
           userId: Number(auth.userId),
         },
       });
+      // if(!cart){
+      //      //create cart for them
+      //      await this.prisma.cart.create
+      // }
+
       //get all product from cart...
       const cartItem = await this.prisma.cartItem.findMany({
         include: {

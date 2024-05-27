@@ -28,7 +28,7 @@ export class UserService {
     private readonly cloudinary: CloudinaryService,
     private readonly mailservice: MailerService,
     private readonly eventEmitter: EventEmitter2,
-  ) { }
+  ) {}
 
   public async hashpassword(password: string) {
     return await bcrypt.hash(password, 10);
@@ -47,14 +47,16 @@ export class UserService {
   public async validateuser(data: loginuserDto) {
     //check user is exist or not
     const user = await this.findByEmail(data.email);
-    console.log(user)
+    console.log(user);
     //if user is not found
     if (!user) {
       throw new UnauthorizedException('Invalid credintials');
     }
 
     if (!user.status) {
-      throw new Error("your accound is currently suspended please contact to admin")
+      throw new Error(
+        'your accound is currently suspended please contact to admin',
+      );
     }
 
     //comopair
@@ -95,6 +97,7 @@ export class UserService {
     return OTP;
   }
 
+  //find user by email.....//......!
   async findByEmail(email: string) {
     const checkuserRole = await this.prisma.roles.findFirst({
       where: {
@@ -133,19 +136,22 @@ export class UserService {
                   select: {
                     id: true,
                     slug: true,
-
-                  }
-                }
-              }
-            }
+                  },
+                },
+              },
+            },
           },
         },
-
       },
-      where: {AND:[{email, role_id: Number(checkuserRole.id)}, {userType: "CUSTOMER"}]  },
+      where: {
+        AND: [
+          { email, role_id: Number(checkuserRole.id) },
+          { userType: 'CUSTOMER' },
+        ],
+      },
     });
   }
-
+  //.......................//......!
   async findAdminByEmail(email: string) {
     const checkuserRole = await this.prisma.roles.findFirst({
       where: {
@@ -181,19 +187,18 @@ export class UserService {
                   select: {
                     id: true,
                     slug: true,
-
-                  }
-                }
-              }
-            }
+                  },
+                },
+              },
+            },
           },
         },
       },
       where: {
         email: email,
         NOT: {
-          role_id: checkuserRole.id
-        }
+          role_id: checkuserRole.id,
+        },
       },
     });
   }
@@ -203,39 +208,44 @@ export class UserService {
     try {
       //admin count......
       const roles = await this.prisma.roles.findMany({});
-      const admin = roles.filter((role) => role.name === "ADMIN")[0];
-      const subadmin = roles.filter((role) => role.name === "SUBADMIN")[0];
-      const user = roles.filter((role) => role.name === "USER")[0];
+      const admin = roles.filter((role) => role.name === 'ADMIN')[0];
+      const subadmin = roles.filter((role) => role.name === 'SUBADMIN')[0];
+      const user = roles.filter((role) => role.name === 'USER')[0];
 
       const admincount = await this.prisma.user.aggregate({
-        _count: true, where: {
-          role_id: Number(admin.id)
-        }
-      })
+        _count: true,
+        where: {
+          role_id: Number(admin.id),
+        },
+      });
       //subadmin count.......
       const subadmincount = await this.prisma.user.aggregate({
-        _count: true, where: {
-          role_id: Number(subadmin.id)
-        }
-      })
+        _count: true,
+        where: {
+          role_id: Number(subadmin.id),
+        },
+      });
       //user count........
       const usercount = await this.prisma.user.aggregate({
-        _count: true, where: {
-          role_id: Number(user.id)
-        }
-      })
+        _count: true,
+        where: {
+          role_id: Number(user.id),
+        },
+      });
 
       let data = {
         admincount,
         subadmincount,
-        usercount
-      }
-      return response.status(HttpStatus.OK).json({ success: true, data })
+        usercount,
+      };
+      return response.status(HttpStatus.OK).json({ success: true, data });
     } catch (error) {
-      return response.status(HttpStatus.BAD_REQUEST).json({ success: false, message: error.message })
+      return response
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ success: false, message: error.message });
     }
   }
-
+  //...//...//...//...//...//...//
   async createuser(data: createUserDto, file: any) {
     const checkuser = await this.prisma.user.findUnique({
       where: {
@@ -271,7 +281,7 @@ export class UserService {
         name: data.name,
         email: data.email,
         password: hashpassword,
-        userType: "CUSTOMER",
+        userType: 'CUSTOMER',
         role_id: userroleId.id,
       },
     });
@@ -290,13 +300,31 @@ export class UserService {
         avatar: user.avatar,
         userType: user.userType,
         user_information: user.user_information,
-        permission: user?.role?.permissions.filter((p: any) => p?.userType === "CUSTOMER").map((p) => p?.permission?.slug)
+        permission: user?.role?.permissions
+          .filter((p: any) => p?.userType === 'CUSTOMER')
+          .map((p) => p?.permission?.slug),
       };
+
       // const permission =[];
 
       // console.log(user.role.permissions)
       // const arr = user?.role?.permissions.filter((p: any) =>p?.userType === "CUSTOMER").map((p)=>p?.permission?.slug)
       const token = await this.generateToken(payload, { expiresIn: '10h' });
+
+      //check cart present or not
+      const cart = await this.prisma.cart.findFirst({
+        where: {
+          userId: Number(user.id),
+        },
+      });
+      //if cart is not present then create them
+      if (!cart) {
+        const cart = await this.prisma.cart.create({
+          data: {
+            userId: user.id,
+          },
+        });
+      }
       return {
         ...payload,
         token,
@@ -305,6 +333,7 @@ export class UserService {
       throw new UnauthorizedException(error.message);
     }
   }
+
   async loginAdmin(data: loginuserDto) {
     try {
       const admin = await this.validateAdmin(data);
@@ -315,7 +344,7 @@ export class UserService {
         roles: [admin.role.name],
         avatar: admin.avatar,
         user_information: admin.user_information,
-        permissions: admin?.role?.permissions.map((p) => p?.permission?.slug)
+        permissions: admin?.role?.permissions.map((p) => p?.permission?.slug),
       };
       const token = await this.generateToken(payload, { expiresIn: '10h' });
       return {
@@ -326,6 +355,7 @@ export class UserService {
       throw new UnauthorizedException('Invalid credintials');
     }
   }
+
   async getuserprofile(auth: any) {
     try {
       const select = {
@@ -370,6 +400,7 @@ export class UserService {
       return error;
     }
   }
+
   async getuserbyId(id: number, res: Response) {
     try {
       const userdata = await this.prisma.user.findFirst({
@@ -378,7 +409,7 @@ export class UserService {
           name: true,
           email: true,
           avatar: true,
-          userType:true,
+          userType: true,
           user_information: {
             select: {
               id: true,
@@ -602,12 +633,12 @@ export class UserService {
     };
 
     //update role....
-    let payload:any={}
-    payload.role_id=data.role_id;
-    if(data.userType){
-         payload.userType = data.userType;
-    }else{
-        payload.userType = null
+    let payload: any = {};
+    payload.role_id = data.role_id;
+    if (data.userType) {
+      payload.userType = data.userType;
+    } else {
+      payload.userType = null;
     }
     // payload.userType=data.userType;
     console.log(payload);
@@ -654,38 +685,52 @@ export class UserService {
             name: true,
           },
         },
-      }
+      };
       const isActive = await this.prisma.user.findUnique({
         where: {
-          id: Number(id)
-        }
-      })
+          id: Number(id),
+        },
+      });
       if (isActive.status) {
         const user = await this.prisma.user.update({
           select: select,
           where: {
-            id: Number(id)
+            id: Number(id),
           },
           data: {
-            status: false
-          }
-        })
-        return response.status(HttpStatus.OK).json({ success: true, data: user, message: "status update successfully" })
+            status: false,
+          },
+        });
+        return response
+          .status(HttpStatus.OK)
+          .json({
+            success: true,
+            data: user,
+            message: 'status update successfully',
+          });
       } else {
         const user = await this.prisma.user.update({
           select: select,
           where: {
-            id: Number(id)
+            id: Number(id),
           },
           data: {
-            status: true
-          }
-        })
+            status: true,
+          },
+        });
 
-        return response.status(HttpStatus.OK).json({ success: true, data: user, message: "status update successfully" })
+        return response
+          .status(HttpStatus.OK)
+          .json({
+            success: true,
+            data: user,
+            message: 'status update successfully',
+          });
       }
     } catch (error) {
-      return response.status(HttpStatus.BAD_GATEWAY).json({ success: false, message: error.message });
+      return response
+        .status(HttpStatus.BAD_GATEWAY)
+        .json({ success: false, message: error.message });
     }
   }
 
@@ -707,7 +752,7 @@ export class UserService {
       email: true,
       avatar: true,
       status: true,
-      userType:true,
+      userType: true,
       user_information: {
         select: {
           id: true,
@@ -960,6 +1005,7 @@ export class UserService {
     //create passwordToken send back to user.............
   }
 
+  //reset password...............!
   async resetpassword(
     otp: number,
     email: string,
@@ -1042,7 +1088,7 @@ export class UserService {
 
   @OnEvent('user.send_success_pass_update_email')
   async sendsucessresetpassword(payload: successpassevent) {
-    console.log('email send to user');
+    //console.log('email send to user');
     await this.mailservice.sendMail({
       from: '<arbaaj1147@gmail.com>',
       to: `shaikharbaj2001@gmail.com`,
