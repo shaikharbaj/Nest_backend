@@ -49,7 +49,29 @@ export class ProductService {
     async getallproducts(res:Response){
             try {
                 const data = await this.prisma.product.findMany({
-                    
+                    select:{
+                        id:true,
+                        name:true,
+                        description:true,
+                        originalprice:true,
+                        discountprice:true,
+                        stock:true,
+                        category:{
+                              select:{
+                                   id:true,
+                                   name:true
+                              }
+                               
+                        },
+                        subcategory:{
+                               select:{
+                                   id:true,
+                                   name:true
+                               }
+                        },
+                        image:true,
+                        supplier_id:true
+                    }
                 })
                 return res.status(HttpStatus.OK).json({ message: 'all products fetch successfully', data});
             } catch (error) {

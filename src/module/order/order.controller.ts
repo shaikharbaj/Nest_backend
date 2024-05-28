@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Res, UseGuards } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { Response } from 'express';
 import { Auth } from '../user/dto/authdto';
@@ -18,5 +18,15 @@ export class OrderController {
     @Get("/getallorderofcustomer")
     async getallorderofcustomer(@Auth() auth:any,@Res() res:Response){
             return await this.orderservice.getallordersofcustomer(auth,res)
+    }
+    @UseGuards(JwtGuard)
+    @Get("/getorderbyid/:id")
+    async getOrderById(@Auth() auth:any,@Param("id") id:number,@Res() res:Response){
+            return await this.orderservice.getorderbyID(auth,id,res)
+    }
+    @UseGuards(JwtGuard)
+    @Get("/loadallsupplierorders")
+    async loadallsupplierorders(@Auth() auth:any,@Param("id") id:number,@Res() res:Response){
+            return await this.orderservice.loadallsupplierorders(auth,res)
     }
 }

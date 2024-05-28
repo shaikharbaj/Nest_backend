@@ -72,6 +72,7 @@ export class OrderService {
     try {
       const orders = await this.prisma.order.findMany({
         select: {
+          id: true,
           userId: true,
           totalPrice: true,
           status: true,
@@ -86,12 +87,15 @@ export class OrderService {
           shippingState: true,
           shippingZipCode: true,
           shippingCountry: true,
+          createdAt: true,
           orderItems: {
             select: {
               id: true,
               quantity: true,
               price: true,
               product: true,
+              status: true,
+              paymentStatus: true,
             },
           },
         },
@@ -111,6 +115,101 @@ export class OrderService {
       return res
         .status(HttpStatus.BAD_REQUEST)
         .json({ success: false, message: error.message });
+    }
+  }
+
+  async getorderbyID(auth: any, id: number, res: Response) {
+    try {
+      const order = await this.prisma.order.findFirst({
+        select: {
+          id: true,
+          userId: true,
+          totalPrice: true,
+          status: true,
+          paymentStatus: true,
+          paymentMethod: true,
+          shippingName: true,
+          shippingPhone: true,
+          shippingEmail: true,
+          shippingAddressLine1: true,
+          shippingAddressLine2: true,
+          shippingCity: true,
+          shippingState: true,
+          shippingZipCode: true,
+          shippingCountry: true,
+          createdAt: true,
+          orderItems: {
+            select: {
+              id: true,
+              quantity: true,
+              price: true,
+              product: true,
+              status: true,
+              paymentStatus: true,
+            },
+          },
+        },
+        where: {
+          AND: [{ id: Number(id) }, { userId: Number(auth.userId) }],
+        },
+      });
+
+      return res.status(201).json({
+        data: order,
+        success: true,
+        message: 'order fetch successfully',
+      });
+    } catch (error) {
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ message: error.message, success: false });
+    }
+  }
+
+  async loadallsupplierorders(auth: any, res: Response) {
+    try {
+      const order = await this.prisma.order.findFirst({
+        select: {
+          id: true,
+          userId: true,
+          totalPrice: true,
+          status: true,
+          paymentStatus: true,
+          paymentMethod: true,
+          shippingName: true,
+          shippingPhone: true,
+          shippingEmail: true,
+          shippingAddressLine1: true,
+          shippingAddressLine2: true,
+          shippingCity: true,
+          shippingState: true,
+          shippingZipCode: true,
+          shippingCountry: true,
+          createdAt: true,
+          orderItems: {
+            select: {
+              id: true,
+              quantity: true,
+              price: true,
+              product: true,
+              status: true,
+              paymentStatus: true,
+            },
+          },
+        },
+        where: {
+          userId: Number(auth.userId),
+        },
+      });
+      return res.status(201).json({
+        data: order,
+        success: true,
+        message: 'supplier order fetch successfully...!',
+      });
+    } catch (error) {
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ message: error.message, success: false });
     }
   }
 }
