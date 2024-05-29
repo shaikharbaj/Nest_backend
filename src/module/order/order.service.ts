@@ -168,45 +168,56 @@ export class OrderService {
 
   async loadallsupplierorders(auth: any, res: Response) {
     try {
-      const order = await this.prisma.order.findFirst({
-        select: {
-          id: true,
-          userId: true,
-          totalPrice: true,
-          status: true,
-          paymentStatus: true,
-          paymentMethod: true,
-          shippingName: true,
-          shippingPhone: true,
-          shippingEmail: true,
-          shippingAddressLine1: true,
-          shippingAddressLine2: true,
-          shippingCity: true,
-          shippingState: true,
-          shippingZipCode: true,
-          shippingCountry: true,
-          createdAt: true,
-          orderItems: {
-            select: {
-              id: true,
-              quantity: true,
-              price: true,
-              product: true,
-              status: true,
-              paymentStatus: true,
-            },
-          },
-        },
+      //   const order = await this.prisma.order.findFirst({
+      //     select: {
+      //       id: true,
+      //       userId: true,
+      //       totalPrice: true,
+      //       status: true,
+      //       paymentStatus: true,
+      //       paymentMethod: true,
+      //       shippingName: true,
+      //       shippingPhone: true,
+      //       shippingEmail: true,
+      //       shippingAddressLine1: true,
+      //       shippingAddressLine2: true,
+      //       shippingCity: true,
+      //       shippingState: true,
+      //       shippingZipCode: true,
+      //       shippingCountry: true,
+      //       createdAt: true,
+      //       orderItems: {
+      //         select: {
+      //           id: true,
+      //           quantity: true,
+      //           price: true,
+      //           product: true,
+      //           status: true,
+      //           paymentStatus: true,
+      //         },
+      //       },
+      //     },
+      //     where: {
+      //       userId: Number(auth.userId),
+      //     },
+      //   });
+      const orders = await this.prisma.orderItem.findMany({
         where: {
-          userId: Number(auth.userId),
+          supplierId: Number(auth?.userId),
+        },
+        include: {
+          order: true,
+          product: true,
         },
       });
+
       return res.status(201).json({
-        data: order,
+        data: orders,
         success: true,
         message: 'supplier order fetch successfully...!',
       });
     } catch (error) {
+      console.log(error);
       return res
         .status(HttpStatus.BAD_REQUEST)
         .json({ message: error.message, success: false });

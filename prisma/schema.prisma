@@ -52,6 +52,7 @@ model User {
   blogs            Blog[]
   cart             Cart?
   orders           Order[]
+  orderItems       OrderItem[]
 }
 
 // model UserType {
@@ -246,6 +247,8 @@ model OrderItem {
   product       Product       @relation(fields: [productId], references: [id])
   productId     Int
   quantity      Int
+  supplierId    Int
+  supplier      User          @relation(fields: [supplierId],references: [id])
   status        OrderStatus   @default(PENDING)
   paymentStatus PaymentStatus @default(UNPAID)
   price         Float

@@ -26,7 +26,7 @@ export class OrderController {
     }
     @UseGuards(JwtGuard)
     @Get("/loadallsupplierorders")
-    async loadallsupplierorders(@Auth() auth:any,@Param("id") id:number,@Res() res:Response){
+    async loadallsupplierorders(@Auth() auth:any,@Res() res:Response){
             return await this.orderservice.loadallsupplierorders(auth,res)
     }
 }
