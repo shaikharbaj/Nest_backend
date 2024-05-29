@@ -42,11 +42,11 @@ type verifyOTPType = {
 };
 @Controller('user')
 export class UserController {
-  constructor(private readonly userservice: UserService) { }
-  
+  constructor(private readonly userservice: UserService) {}
+
   @Roles(Role.ADMIN, Role.SUBADMIN)
   @UseGuards(JwtGuard, RolesGuard)
-  @Get("/getalldashboardcount")
+  @Get('/getalldashboardcount')
   async getalldashboardcount(@Res() response: Response) {
     return this.userservice.getalldashboardcount(response);
   }
@@ -54,8 +54,8 @@ export class UserController {
   // @Roles(Role.ADMIN, Role.SUBADMIN)
   @HasPermission(userModulePermission.Toggle)
   @UseGuards(JwtGuard, RolesGuard)
-  @Patch("/togglestatus/:id")
-  async togglestatus(@Res() response: Response, @Param("id") id: number) {
+  @Patch('/togglestatus/:id')
+  async togglestatus(@Res() response: Response, @Param('id') id: number) {
     return await this.userservice.togglestatus(response, id);
   }
 
@@ -157,7 +157,7 @@ export class UserController {
   // @Roles(Role.ADMIN)
   @HasPermission(userModulePermission.UPDATE)
   @UseGuards(JwtGuard, RolesGuard)
-  @Patch("/change_role")
+  @Patch('/change_role')
   async changeRole(@Body() data: any, @Res() response: Response) {
     return await this.userservice.change_role(response, data);
   }

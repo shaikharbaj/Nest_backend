@@ -217,7 +217,99 @@ export class OrderService {
         message: 'supplier order fetch successfully...!',
       });
     } catch (error) {
-      console.log(error);
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ message: error.message, success: false });
+    }
+  }
+
+  async loadsinglesupplierOrder(auth: any, id: number, res: Response) {
+    try {
+      const order = await this.prisma.orderItem.findFirst({
+        where: {
+          AND: [{ supplierId: Number(auth?.userId) }, { id: Number(id) }],
+        },
+        include: {
+          order: {
+            include: {
+              user: true,
+            },
+          },
+          product: true,
+        },
+      });
+      return res.status(201).json({
+        data: order,
+        success: true,
+        message: 'supplier order fetch successfully...!',
+      });
+    } catch (error) {
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ message: error.message, success: false });
+    }
+  }
+
+  async updateorderstatus(auth: any, data: any, res: Response) {
+    try {
+      const updateorder = await this.prisma.orderItem.update({
+        include: {
+          order: {
+            include: {
+              user: true,
+            },
+          },
+          product: true,
+        },
+        where: {
+          id: Number(data?.orderItemId),
+        },
+        data: {
+          status: data?.status,
+          paymentStatus: data?.paymentStatus,
+        },
+      });
+
+      //check orderitems are delivered or not if delivered then change the status of order from pending to delivered...........
+      if (updateorder.order.paymentMethod === 'CASH_ON_DELIVERY') {
+        //find all order of that particular orderid
+        const orders = await this.prisma.order.findFirst({
+          include: {
+            orderItems: true,
+          },
+          where: {
+            id: Number(updateorder.order.id),
+          },
+        });
+        let flag: boolean = true;
+        for (let item in orders['orderItems']) {
+          if (orders['orderItems'][item].status !== 'DELIVERED') {
+            flag = false;
+            break;
+          }
+        }
+        if (flag) {
+          //change the status of the delivered and payment status to paid....
+          const changeorderstatus = await this.prisma.order.update({
+            where: {
+              id: Number(updateorder.order.id),
+            },
+            data: {
+              status: 'DELIVERED',
+              paymentStatus: 'PAID',
+            },
+          });
+        }
+      }
+
+      //and change orderstatus from unpaid to paid in case of cash on delivery.....
+
+      return res.status(201).json({
+        data: updateorder,
+        success: true,
+        message: 'status updated successfully...!',
+      });
+    } catch (error) {
       return res
         .status(HttpStatus.BAD_REQUEST)
         .json({ message: error.message, success: false });

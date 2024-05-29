@@ -248,7 +248,7 @@ model OrderItem {
   productId     Int
   quantity      Int
   supplierId    Int
-  supplier      User          @relation(fields: [supplierId],references: [id])
+  supplier      User          @relation(fields: [supplierId], references: [id])
   status        OrderStatus   @default(PENDING)
   paymentStatus PaymentStatus @default(UNPAID)
   price         Float

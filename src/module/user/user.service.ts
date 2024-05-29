@@ -374,15 +374,14 @@ export class UserService {
         },
       };
       const user = await this.prisma.user.findFirst({
-        where: {
-          id: Number(auth.userId),
-        },
         select: {
           id: true,
           name: true,
-          email: true,
           avatar: true,
-          // role: true,
+          email: true,
+          password: true,
+          status: true,
+          userType: true,
           user_information: {
             select: {
               data_of_birth: true,
@@ -393,9 +392,44 @@ export class UserService {
               zipcode: true,
             },
           },
+          role_id: true,
+          role: {
+            select: {
+              id: true,
+              name: true,
+              permissions: {
+                select: {
+                  permission_id: true,
+                  userType: true,
+                  permission: {
+                    select: {
+                      id: true,
+                      slug: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        where: {
+          id: Number(auth.userId),
         },
       });
-      return user;
+
+      const payload = {
+        userId: user.id,
+        email: user.email,
+        name: user.name,
+        roles: [user.role.name],
+        avatar: user.avatar,
+        userType: user.userType,
+        user_information: user.user_information,
+        permission: user?.role?.permissions
+          .filter((p: any) => p?.userType === 'CUSTOMER')
+          .map((p) => p?.permission?.slug),
+      }
+      return payload;
     } catch (error) {
       return error;
     }
@@ -568,11 +602,67 @@ export class UserService {
         },
       });
     }
+    
+    const user = await this.prisma.user.findFirst({
+      select: {
+        id: true,
+        name: true,
+        avatar: true,
+        email: true,
+        password: true,
+        status: true,
+        userType: true,
+        user_information: {
+          select: {
+            data_of_birth: true,
+            phone_number: true,
+            state: true,
+            street: true,
+            city: true,
+            zipcode: true,
+          },
+        },
+        role_id: true,
+        role: {
+          select: {
+            id: true,
+            name: true,
+            permissions: {
+              select: {
+                permission_id: true,
+                userType: true,
+                permission: {
+                  select: {
+                    id: true,
+                    slug: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      where: {
+        id: Number(auth.userId),
+      },
+    });
 
-    const payload: any = {
-      ...updateduserdata,
-      user_information: { ...user_information },
-    };
+    const payload = {
+      userId: user.id,
+      email: user.email,
+      name: user.name,
+      roles: [user.role.name],
+      avatar: user.avatar,
+      userType: user.userType,
+      user_information: user.user_information,
+      permission: user?.role?.permissions
+        .filter((p: any) => p?.userType === 'CUSTOMER')
+        .map((p) => p?.permission?.slug),
+    }
+    // const payload: any = {
+    //   ...updateduserdata,
+    //   user_information: { ...user_information },
+    // };
     return payload;
   }
 
@@ -701,13 +791,11 @@ export class UserService {
             status: false,
           },
         });
-        return response
-          .status(HttpStatus.OK)
-          .json({
-            success: true,
-            data: user,
-            message: 'status update successfully',
-          });
+        return response.status(HttpStatus.OK).json({
+          success: true,
+          data: user,
+          message: 'status update successfully',
+        });
       } else {
         const user = await this.prisma.user.update({
           select: select,
@@ -719,13 +807,11 @@ export class UserService {
           },
         });
 
-        return response
-          .status(HttpStatus.OK)
-          .json({
-            success: true,
-            data: user,
-            message: 'status update successfully',
-          });
+        return response.status(HttpStatus.OK).json({
+          success: true,
+          data: user,
+          message: 'status update successfully',
+        });
       }
     } catch (error) {
       return response

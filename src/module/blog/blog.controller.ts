@@ -18,18 +18,21 @@ import { Auth } from '../user/dto/authdto';
 import { BlogService } from './blog.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileValidationPipe } from 'src/exceptions/filetypeandsize';
+import { HasPermission } from '../auth/decorator/has-permission.decorator';
+import { blogModulePermissions } from 'src/constants/permissions';
+import { RolesGuard } from '../auth/guards/roles.guard';
 
 @Controller('blog')
 export class BlogController {
-  constructor(private readonly blogService: BlogService) { }
+  constructor(private readonly blogService: BlogService) {}
 
   @Get('/remove_image')
   async removeImage() {
     return await this.blogService.removeImage();
   }
-  @Get("/filter")
-  async getfilteredData(@Query() paylaod: any,@Res() res:Response) {
-    return await this.blogService.getfilteredData(paylaod,res);
+  @Get('/filter')
+  async getfilteredData(@Query() paylaod: any, @Res() res: Response) {
+    return await this.blogService.getfilteredData(paylaod, res);
   }
   @UseGuards(JwtGuard)
   @Get('/all')
@@ -42,7 +45,8 @@ export class BlogController {
     return await this.blogService.getblogById(id, res);
   }
 
-  @UseGuards(JwtGuard)
+  @HasPermission(blogModulePermissions.ADD)
+  @UseGuards(JwtGuard, RolesGuard)
   @UseInterceptors(FileInterceptor('image'))
   @Post('/add')
   async addBlog(
@@ -54,7 +58,8 @@ export class BlogController {
     return await this.blogService.addblog(auth, data, file, res);
   }
 
-  @UseGuards(JwtGuard)
+  @HasPermission(blogModulePermissions.UPDATE)
+  @UseGuards(JwtGuard, RolesGuard)
   @UseInterceptors(FileInterceptor('image'))
   @Patch('/edit/:id')
   async editBlog(
@@ -66,14 +71,12 @@ export class BlogController {
     return await this.blogService.updateblog(id, data, file, res);
   }
 
-  @UseGuards(JwtGuard)
+  @HasPermission(blogModulePermissions.DELETE)
+  @UseGuards(JwtGuard, RolesGuard)
   @Delete(':id')
   async deleteBlog(@Param('id') id: number, @Res() res: Response) {
     return await this.blogService.deleteBlog(id, res);
   }
-
-
-
 
   // @Get("/get")
   // async getdata(){
