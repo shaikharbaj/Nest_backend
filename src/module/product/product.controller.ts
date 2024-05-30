@@ -59,8 +59,16 @@ export class ProductController {
 
   @HasPermission(productModulePermission.UPDATE)
   @UseGuards(JwtGuard, RolesGuard)
+  @UseInterceptors(FilesInterceptor('images'))
   @Patch('edit/:id')
-  async editproduct() {}
+  async editproduct(
+    @Param('id') id: number,
+    @Body() data: any,
+    @Res() res: Response,
+    @UploadedFiles() files: Array<Express.Multer.File>,
+  ) {
+    return await this.productservice.updateProduct(id, data, files, res);
+  }
 
   @HasPermission(productModulePermission.DELETE)
   @UseGuards(JwtGuard, RolesGuard)

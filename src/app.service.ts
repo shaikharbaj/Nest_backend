@@ -15,7 +15,7 @@ export class AppService {
     // const id = 1;
     // const name = 'arbaj'
     // this.eventEmitter.emit('user.create', new userSendResetLinkEvent(id, name))
-    return 'hii'
+    return 'hi'
   }
 
   // @OnEvent('user.create')

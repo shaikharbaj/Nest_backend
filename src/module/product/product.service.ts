@@ -151,7 +151,66 @@ export class ProductService {
         .json({ success: false, error: error.message });
     }
   }
-  async updateProduct(id: number, res: Response) {}
+
+  async updateProduct(
+    id: number,
+    data: any,
+    files: Array<Express.Multer.File>,
+    res: Response,
+  ) {
+    try {
+      // name: 'This is 1st product',
+      // description: 'This is the description of the first product that i create',
+      // category_id: '1',
+      // subcategory_id: '',
+      // originalprice: '500',
+      // discountprice: '400',
+      // stock: '10'
+      const payload: any = {};
+      if (data?.name) {
+        payload.name = data?.name;
+      }
+      if (data?.description) {
+        payload.description = data?.description;
+      }
+      if (data?.originalprice) {
+        payload.originalprice = parseFloat(data?.originalprice);
+      }
+      if (data?.discountprice) {
+        payload.discountprice = parseFloat(data?.discountprice);
+      }
+      if (data?.category_id) {
+        payload.category_id = Number(data?.category_id);
+      }
+      if (data?.subcategory_id) {
+        payload.subcategory_id = Number(data?.subcategory_id);
+      }
+      if (data?.stock) {
+        payload.stock = Number(data?.stock);
+      }
+     console.log(payload)
+      //update product.....
+      const update = await this.prisma.product.update({
+        where: {
+          id: Number(id),
+        },
+        data: payload,
+      });
+
+      return res
+        .status(201)
+        .json({
+          success: true,
+          message: 'product updated successfully',
+          data: update,
+        });
+    } catch (error) {
+      console.log(error);
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ success: false, message: error.message });
+    }
+  }
   async deleteproduct(id: number, res: Response) {
     try {
       const product = await this.prisma.product.delete({

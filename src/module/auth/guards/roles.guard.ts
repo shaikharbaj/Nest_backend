@@ -23,9 +23,7 @@ export class RolesGuard implements CanActivate {
       return true;
     }
     const { user } = context.switchToHttp().getRequest();
-    console.log(user);
     const allowedPermissions = user?.permission;
-    console.log(allowedPermissions);
     if (
       allowedPermissions &&
       allowedPermissions.length > 0 &&

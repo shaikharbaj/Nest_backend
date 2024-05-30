@@ -146,7 +146,7 @@ export class UserService {
       where: {
         AND: [
           { email, role_id: Number(checkuserRole.id) },
-          { userType: 'CUSTOMER' },
+          // { userType: 'CUSTOMER' },
         ],
       },
     });
@@ -301,29 +301,30 @@ export class UserService {
         userType: user.userType,
         user_information: user.user_information,
         permission: user?.role?.permissions
-          .filter((p: any) => p?.userType === 'CUSTOMER')
+          .filter((p: any) => p?.userType === user.userType)
           .map((p) => p?.permission?.slug),
       };
 
       // const permission =[];
-
-      // console.log(user.role.permissions)
       // const arr = user?.role?.permissions.filter((p: any) =>p?.userType === "CUSTOMER").map((p)=>p?.permission?.slug)
       const token = await this.generateToken(payload, { expiresIn: '10h' });
 
-      //check cart present or not
-      const cart = await this.prisma.cart.findFirst({
-        where: {
-          userId: Number(user.id),
-        },
-      });
-      //if cart is not present then create them
-      if (!cart) {
-        const cart = await this.prisma.cart.create({
-          data: {
-            userId: user.id,
+      if (user?.userType === 'CUSTOMER') {
+        //check cart present or not
+
+        const cart = await this.prisma.cart.findFirst({
+          where: {
+            userId: Number(user.id),
           },
         });
+        // if cart is not present then create them
+        if (!cart) {
+          const cart = await this.prisma.cart.create({
+            data: {
+              userId: user.id,
+            },
+          });
+        }
       }
       return {
         ...payload,
@@ -428,7 +429,7 @@ export class UserService {
         permission: user?.role?.permissions
           .filter((p: any) => p?.userType === 'CUSTOMER')
           .map((p) => p?.permission?.slug),
-      }
+      };
       return payload;
     } catch (error) {
       return error;
@@ -602,7 +603,7 @@ export class UserService {
         },
       });
     }
-    
+
     const user = await this.prisma.user.findFirst({
       select: {
         id: true,
@@ -658,7 +659,7 @@ export class UserService {
       permission: user?.role?.permissions
         .filter((p: any) => p?.userType === 'CUSTOMER')
         .map((p) => p?.permission?.slug),
-    }
+    };
     // const payload: any = {
     //   ...updateduserdata,
     //   user_information: { ...user_information },
