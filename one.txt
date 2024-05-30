@@ -149,3 +149,62 @@ main()
   "prisma": {
     "seed": "ts-node prisma/seeders/seed.ts"
   }
+
+
+
+
+
+
+
+
+
+
+
+
+
+  [
+  {
+    asset_id: '231448145809f0c3866f2cf069db9e55',
+    public_id: 'nest/qp1dkugjqixyffsmtm1j',
+    version: 1717065182,
+    version_id: '5e1959b85b4e38ab2981bfb37be1e512',
+    signature: 'cfa93cd34e162928bc55932c2f021477601aef5f',
+    width: 1920,
+    height: 1080,
+    format: 'png',
+    resource_type: 'image',
+    created_at: '2024-05-30T10:33:02Z',
+    tags: [],
+    bytes: 252816,
+    type: 'upload',
+    etag: 'f7fdbf014b445f46367e11c75440f281',
+    placeholder: false,
+    url: 'http://res.cloudinary.com/dj48ilwse/image/upload/v1717065182/nest/qp1dkugjqixyffsmtm1j.png',
+    secure_url: 'https://res.cloudinary.com/dj48ilwse/image/upload/v1717065182/nest/qp1dkugjqixyffsmtm1j.png',
+    folder: 'nest',
+    original_filename: 'file',
+    api_key: '892445676793415'
+  },
+  {
+    asset_id: '34fc1fc9cb484801fc476cc916075c02',
+    public_id: 'nest/gvoz3rh89afpdqlmdidh',
+    version: 1717065183,
+    version_id: '8effade8ed3d0d2984db95a5520be6df',
+    signature: '6d76d32dccc00cde6f0f8ffd720189801915527a',
+    width: 1366,
+    height: 768,
+    format: 'png',
+    resource_type: 'image',
+    created_at: '2024-05-30T10:33:03Z',
+    tags: [],
+    bytes: 762737,
+    type: 'upload',
+    etag: '4f813377f5541b059121db2396a5700f',
+    placeholder: false,
+    url: 'http://res.cloudinary.com/dj48ilwse/image/upload/v1717065183/nest/gvoz3rh89afpdqlmdidh.png',
+    secure_url: 'https://res.cloudinary.com/dj48ilwse/image/upload/v1717065183/nest/gvoz3rh89afpdqlmdidh.png',
+    folder: 'nest',
+    original_filename: 'file',
+    api_key: '892445676793415'
+  }
+]

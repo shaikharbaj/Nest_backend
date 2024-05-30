@@ -344,7 +344,7 @@ export class UserService {
         roles: [admin.role.name],
         avatar: admin.avatar,
         user_information: admin.user_information,
-        permissions: admin?.role?.permissions.map((p) => p?.permission?.slug),
+        permission: admin?.role?.permissions.map((p) => p?.permission?.slug),
       };
       const token = await this.generateToken(payload, { expiresIn: '10h' });
       return {

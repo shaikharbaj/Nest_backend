@@ -8,10 +8,11 @@ import {
   Post,
   Res,
   UploadedFile,
+  UploadedFiles,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { Auth } from '../user/dto/authdto';
 import { FileValidationPipe } from 'src/exceptions/filetypeandsize';
 import { ProductService } from './product.service';
@@ -34,7 +35,7 @@ export class ProductController {
   async getallproducts(@Res() res: Response) {
     return await this.productservice.getallproducts(res);
   }
-  @Get(':id')
+  @Get('/getproductbyID/:id')
   async getSingleProduct(@Param('id') id: number, @Res() res: Response) {
     return await this.productservice.getsingleproduct(id, res);
   }
@@ -45,16 +46,15 @@ export class ProductController {
 
   @HasPermission(productModulePermission.ADD)
   @UseGuards(JwtGuard, RolesGuard)
-  @UseInterceptors(FileInterceptor('image'))
+  @UseInterceptors(FilesInterceptor('images'))
   @Post('/add')
   async addProduct(
     @Auth() auth: any,
+    @UploadedFiles() files: Array<Express.Multer.File>,
     @Body() data: any,
-    @UploadedFile(FileValidationPipe) file: Express.Multer.File,
     @Res() res: Response,
   ) {
-    // console.log(auth)
-    return await this.productservice.addproduct(auth, data, file, res);
+    return await this.productservice.addproduct(auth, data, files, res);
   }
 
   @HasPermission(productModulePermission.UPDATE)

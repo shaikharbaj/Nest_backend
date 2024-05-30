@@ -6,9 +6,9 @@ import toStream = require('buffer-to-stream');
 export class CloudinaryService {
   constructor() {
     v2.config({
-      cloud_name: 'dj48ilwse',
-      api_key: '892445676793415',
-      api_secret: 'H9Vy-XyWkABYqM3HkP5vXlbyAFo',
+      cloud_name: process.env.CLOUDINARY_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_SECRET_KEY,
     });
   }
 
@@ -16,13 +16,22 @@ export class CloudinaryService {
     file: Express.Multer.File,
   ): Promise<UploadApiResponse | UploadApiErrorResponse> {
     return new Promise((resolve, reject) => {
-      const upload = v2.uploader.upload_stream({ folder: "nest" }, (error, result) => {
-        if (error) return reject(error);
-        resolve(result);
-      });
+      const upload = v2.uploader.upload_stream(
+        { folder: 'nest' },
+        (error, result) => {
+          if (error) return reject(error);
+          resolve(result);
+        },
+      );
 
       toStream(file.buffer).pipe(upload);
     });
+  }
+
+  async uploadImages(
+    files: Express.Multer.File[],
+  ): Promise<(UploadApiResponse | UploadApiErrorResponse)[]> {
+    return Promise.all(files.map(file => this.uploadImage(file)));
   }
 
   async removeImage(
