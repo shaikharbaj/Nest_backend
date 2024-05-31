@@ -53,6 +53,7 @@ model User {
   cart             Cart?
   orders           Order[]
   orderItems       OrderItem[]
+  userAddress      userAddress[]
 }
 
 // model UserType {
@@ -71,6 +72,18 @@ model userInformation {
   zipcode       String?
   userId        Int       @unique
   user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model userAddress {
+  id           Int    @id @default(autoincrement())
+  userId       Int
+  user         User   @relation(fields: [userId], references: [id])
+  country      String
+  state        String
+  city         String
+  address      String
+  zipcode      String
+  phone_number String
 }
 
 model OTP {

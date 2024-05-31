@@ -47,7 +47,6 @@ export class UserService {
   public async validateuser(data: loginuserDto) {
     //check user is exist or not
     const user = await this.findByEmail(data.email);
-    console.log(user);
     //if user is not found
     if (!user) {
       throw new UnauthorizedException('Invalid credintials');
@@ -104,7 +103,7 @@ export class UserService {
         name: 'USER',
       },
     });
-    return await this.prisma.user.findFirst({
+    const payload = await this.prisma.user.findFirst({
       select: {
         id: true,
         name: true,
@@ -150,6 +149,10 @@ export class UserService {
         ],
       },
     });
+    console.log('---------------------------------');
+    console.log(payload);
+    console.log('---------------------------------');
+    return payload;
   }
   //.......................//......!
   async findAdminByEmail(email: string) {
@@ -732,7 +735,7 @@ export class UserService {
       payload.userType = null;
     }
     // payload.userType=data.userType;
-    console.log(payload);
+
     const updateduser = await this.prisma.user.update({
       select: userPayload,
       where: {
@@ -910,7 +913,7 @@ export class UserService {
         email: payload.email,
       },
     });
-    console.log(checkuserexist);
+
     if (!checkuserexist) {
       throw new UnauthorizedException('user not found');
     }
@@ -1005,7 +1008,7 @@ export class UserService {
       }
       //verify token.....
       const verifiedToken = await jwt.verify(token, 'ARBAJ');
-      console.log(verifiedToken);
+
       if (password !== confirmpassword) {
         return response.status(401).json({
           success: false,
@@ -1159,6 +1162,55 @@ export class UserService {
       return response
         .status(401)
         .json({ success: false, message: error?.message });
+    }
+  }
+
+  //add address................
+  async addAddress(data: any, auth: any, res: Response) {
+    try {
+      const payload: any = {
+        country: data?.country,
+        state: data?.state,
+        city: data?.city,
+        address: data?.addressLine1,
+        phone_number: data?.phone_number?.toString(),
+        zipcode: data?.zipcode?.toString(),
+        userId: Number(auth.userId),
+      };
+
+      const newAdderess = await this.prisma.userAddress.create({
+        data: payload,
+      });
+
+      return res.status(HttpStatus.OK).json({
+        success: true,
+        message: 'address add successfully',
+        data: newAdderess,
+      });
+    } catch (error) {
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ success: false, message: error.message });
+    }
+  }
+  //get all address of the user....
+  async getalladdressofuser(auth: any, res: Response) {
+    try {
+      const userAddress = await this.prisma.userAddress.findMany({
+        where: {
+          userId: Number(auth?.userId),
+        },
+      });
+      return res
+        .status(HttpStatus.OK)
+        .json({
+          message: 'all the address of user fetch successfully',
+          data: userAddress,
+        });
+    } catch (error) {
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ success: false, error: error.message });
     }
   }
 

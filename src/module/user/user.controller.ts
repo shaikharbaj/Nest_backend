@@ -21,7 +21,7 @@ import { createUserDto } from './dto/createuser.dto';
 import { loginuserDto } from './dto/loginuser.dto';
 import { JwtGuard } from './guards/jwt.guards';
 import { RefreshJWTGuard } from './guards/refreshtoken.guards';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { Auth } from './dto/authdto';
 import { CloudinaryService } from 'src/cloudinary.service';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -49,6 +49,12 @@ export class UserController {
   @Get('/getalldashboardcount')
   async getalldashboardcount(@Res() response: Response) {
     return this.userservice.getalldashboardcount(response);
+  }
+
+  @UseGuards(JwtGuard)
+  @Get("/getalladdressofuser")
+  async getallAddressofUser(@Auth() auth:any,@Res() res:Response){
+    return await this.userservice.getalladdressofuser(auth,res);
   }
 
   // @Roles(Role.ADMIN, Role.SUBADMIN)
@@ -161,4 +167,10 @@ export class UserController {
   async changeRole(@Body() data: any, @Res() response: Response) {
     return await this.userservice.change_role(response, data);
   }
+  @UseGuards(JwtGuard)
+  @Post('/add_address')
+  async addAddress(@Auth() auth: any, @Body() data: any,@Res() res: Response) {
+    return await this.userservice.addAddress(data, auth, res);
+  }
+  
 }

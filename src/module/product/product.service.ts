@@ -188,7 +188,7 @@ export class ProductService {
       if (data?.stock) {
         payload.stock = Number(data?.stock);
       }
-     console.log(payload)
+      console.log(payload);
       //update product.....
       const update = await this.prisma.product.update({
         where: {
@@ -197,13 +197,11 @@ export class ProductService {
         data: payload,
       });
 
-      return res
-        .status(201)
-        .json({
-          success: true,
-          message: 'product updated successfully',
-          data: update,
-        });
+      return res.status(201).json({
+        success: true,
+        message: 'product updated successfully',
+        data: update,
+      });
     } catch (error) {
       console.log(error);
       return res
@@ -275,6 +273,8 @@ export class ProductService {
   }
   async loadsingleproduct(name: string, res: Response) {
     try {
+      const slug = name.split('-').join(' ');
+      console.log(slug);
       const product = await this.prisma.product.findFirst({
         select: {
           id: true,
@@ -283,6 +283,7 @@ export class ProductService {
           originalprice: true,
           discountprice: true,
           stock: true,
+          productImages: true,
           category: {
             select: {
               id: true,
@@ -298,7 +299,7 @@ export class ProductService {
           image: true,
         },
         where: {
-          name: name,
+          name: slug,
         },
       });
       return res.status(HttpStatus.OK).json({

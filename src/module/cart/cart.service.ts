@@ -20,7 +20,11 @@ export class CartService {
       //get all product from cart...
       const cartItem = await this.prisma.cartItem.findMany({
         include: {
-          product: true,
+          product: {
+            include: {
+              productImages: true,
+            },
+          },
         },
         where: {
           cartId: cart.id,
@@ -42,15 +46,15 @@ export class CartService {
     }
   }
 
-  async getcartcount(auth:any,res:Response){
-   try {
-       const cart = await this.prisma.cart.findFirst({
-           where:{
-              userId:Number(auth?.userId)
-           }
-       })
+  async getcartcount(auth: any, res: Response) {
+    try {
+      const cart = await this.prisma.cart.findFirst({
+        where: {
+          userId: Number(auth?.userId),
+        },
+      });
       //  if(!cart){
-            
+
       //  }
       const totalQuantity = await this.prisma.cartItem.aggregate({
         where: { cartId: cart.id },
@@ -58,12 +62,16 @@ export class CartService {
           quantity: true,
         },
       });
-      return res.status(HttpStatus.OK).json({success:true,cartcount:totalQuantity._sum.quantity || 0});
-   } catch (error) {
-       return res.status(HttpStatus.BAD_REQUEST).json({success:false,message:error.message});
-   }
+      return res
+        .status(HttpStatus.OK)
+        .json({ success: true, cartcount: totalQuantity._sum.quantity || 0 });
+    } catch (error) {
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ success: false, message: error.message });
+    }
   }
-  
+
   async add_to_cart(auth: any, data: any, res: Response) {
     try {
       console.log(auth);
@@ -73,14 +81,14 @@ export class CartService {
         },
       });
       let cartId = cart?.id;
-      if(!cartId && auth.userType==="CUSTOMER"){
-            //create cart for customer.....
-            const newCart = await this.prisma.cart.create({
-                 data:{
-                       userId:Number(auth.userId)
-                 }
-            })
-            cartId = newCart.id;
+      if (!cartId && auth.userType === 'CUSTOMER') {
+        //create cart for customer.....
+        const newCart = await this.prisma.cart.create({
+          data: {
+            userId: Number(auth.userId),
+          },
+        });
+        cartId = newCart.id;
       }
 
       //check product is already in cart or not if
