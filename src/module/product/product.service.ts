@@ -3,83 +3,161 @@ import { Response } from 'express';
 import { title } from 'process';
 import { PrismaService } from '../prisma/prismaservice';
 import { CloudinaryService } from 'src/cloudinary.service';
-
+import { PaginateFunction, paginator } from '../prisma/paginator';
+const paginate: PaginateFunction = paginator({ perPage: 10 });
 @Injectable()
 export class ProductService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly cloudinary: CloudinaryService,
   ) {}
-  async getAllProductsforSupplier(auth: any, res: Response) {
+  public slugify(str: string) {
+    return str
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-]/g, '')
+      .replace(/[\s_-]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  }
+
+  async findManywithPagination(select: {}, where: any, page: number = 1) {
+    return await paginate(
+      this.prisma.product,
+      {
+        select: select,
+        where: { ...where },
+      },
+      { page },
+    );
+  }
+
+  async getAllProductsforSupplier(
+    auth: any,
+    page: number,
+    searchTerm: string,
+    res: Response,
+  ) {
     try {
-      const products = await this.prisma.product.findMany({
-        select: {
-          id: true,
-          name: true,
-          description: true,
-          originalprice: true,
-          discountprice: true,
-          category_id: true,
-          subcategory_id: true,
-          image: true,
-          stock: true,
-          productImages: true,
-          category: {
-            select: {
-              id: true,
-              name: true,
+      const where = {
+        supplier_id: Number(auth?.userId),
+        OR: [
+          { name: { contains: searchTerm, mode: 'insensitive' } },
+          {
+            category: {
+              OR: [{ name: { contains: searchTerm, mode: 'insensitive' } }],
             },
           },
-          subcategory: {
-            select: {
-              id: true,
-              name: true,
+          {
+            subcategory: {
+              OR: [{ name: { contains: searchTerm, mode: 'insensitive' } }],
             },
           },
-          supplier_id: true,
-          supplier: true,
+        ],
+      };
+      const select = {
+        id: true,
+        name: true,
+        description: true,
+        originalprice: true,
+        discountprice: true,
+        category_id: true,
+        subcategory_id: true,
+        image: true,
+        stock: true,
+        productImages: true,
+        category: {
+          select: {
+            id: true,
+            name: true,
+          },
         },
-        where: {
-          supplier_id: Number(auth?.userId),
+        subcategory: {
+          select: {
+            id: true,
+            name: true,
+          },
         },
-      });
+        supplier_id: true,
+        supplier: true,
+      };
+
+      const data = await this.findManywithPagination(select, where, page);
+      // const products = await this.prisma.product.findMany({
+      //   select: {
+      //     id: true,
+      //     name: true,
+      //     description: true,
+      //     originalprice: true,
+      //     discountprice: true,
+      //     category_id: true,
+      //     subcategory_id: true,
+      //     image: true,
+      //     stock: true,
+      //     productImages: true,
+      //     category: {
+      //       select: {
+      //         id: true,
+      //         name: true,
+      //       },
+      //     },
+      //     subcategory: {
+      //       select: {
+      //         id: true,
+      //         name: true,
+      //       },
+      //     },
+      //     supplier_id: true,
+      //     supplier: true,
+      //   },
+      //   where: {
+      //     supplier_id: Number(auth?.userId),
+      //     OR: [
+      //       { name: { contains: searchTerm, mode: 'insensitive' } },
+      //     ]
+      //   },
+      // });
 
       return res
         .status(HttpStatus.OK)
-        .json({ message: 'all products fetch successfully', data: products });
+        .json({ message: 'all products fetch successfully', data });
     } catch (error) {
       return res
         .status(HttpStatus.BAD_REQUEST)
         .json({ message: 'error while fetching data', data: error.message });
     }
   }
-  async getallproducts(res: Response) {
+  async getallproducts(page: number, searchTerm: string, res: Response) {
     try {
-      const data = await this.prisma.product.findMany({
-        select: {
-          id: true,
-          name: true,
-          description: true,
-          originalprice: true,
-          discountprice: true,
-          stock: true,
-          productImages: true,
-          category: {
-            select: {
-              id: true,
-              name: true,
-            },
+      const select: any = {
+        id: true,
+        name: true,
+        description: true,
+        originalprice: true,
+        discountprice: true,
+        stock: true,
+        productImages: true,
+        category: {
+          select: {
+            id: true,
+            name: true,
           },
-          subcategory: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-          image: true,
-          supplier_id: true,
         },
-      });
+        subcategory: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        image: true,
+        supplier_id: true,
+      };
+      const where: any = {
+        OR: [
+          { name: { contains: searchTerm, mode: 'insensitive' } },
+          { description: { contains: searchTerm, mode: 'insensitive' } },
+        ],
+      };
+      const data = await this.findManywithPagination(select, where, page);
       return res
         .status(HttpStatus.OK)
         .json({ message: 'all products fetch successfully', data });
@@ -122,12 +200,14 @@ export class ProductService {
         // console.log(result)
         // payload.image = result.url; // Add avatar property if image upload successful
       }
+      const slug = this.slugify(payload?.name);
       const product = await this.prisma.product.create({
         data: {
           name: payload.name,
           description: payload.description,
           originalprice: parseFloat(payload.originalprice),
           discountprice: parseFloat(payload.discountprice),
+          slug: slug,
           stock: payload.stock,
           category_id: Number(payload.category_id),
           subcategory_id: Number(payload.subcategory_id),
@@ -225,6 +305,7 @@ export class ProductService {
         data: product,
       });
     } catch (error) {
+      console.log(error);
       return res
         .status(HttpStatus.BAD_REQUEST)
         .json({ success: false, error: error.message });
@@ -273,8 +354,9 @@ export class ProductService {
   }
   async loadsingleproduct(name: string, res: Response) {
     try {
-      const slug = name.split('-').join(' ');
-      console.log(slug);
+      // const slug = name.split('-').join(' ');
+      // SAMSUNG Galaxy S24 Ultra 5G (Titanium Gray, 256 GB)  (12 GB RAM)
+      // samsung galaxy s24 ultra 5g titanium gray 256 gb 12 gb ram
       const product = await this.prisma.product.findFirst({
         select: {
           id: true,
@@ -299,13 +381,17 @@ export class ProductService {
           image: true,
         },
         where: {
-          name: slug,
+          slug: {
+            equals: name,
+            mode: 'insensitive',
+          },
         },
       });
       return res.status(HttpStatus.OK).json({
         success: true,
         message: 'product fetch successfully',
         data: product,
+        // data: {},
       });
     } catch (error) {
       return res

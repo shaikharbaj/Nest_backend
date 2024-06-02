@@ -130,9 +130,10 @@ model Category {
   Category            Category[] @relation("ParentCategory")
   blogs               Blog[]     @relation("blogcategory")
   subcategory         Blog[]     @relation("blogsubcategory")
+  category_status     Boolean    @default(true)
+  subcategory_status  Boolean?
   products            Product[]  @relation("CategoryProducts")
   subcategoryProducts Product[]  @relation("SubcategoryProducts")
-
   @@map("category")
 }
 
@@ -196,6 +197,7 @@ model Supplier {
 model Product {
   id             Int             @id @default(autoincrement())
   name           String
+  slug           String
   description    String
   originalprice  Float
   discountprice  Float?
@@ -216,7 +218,7 @@ model productImages {
   id          Int     @id @default(autoincrement())
   url         String
   product_id  Int
-  product     Product @relation(fields: [product_id], references: [id])
+  product     Product @relation(fields: [product_id], references: [id],onDelete: Cascade)
   isThumbnail Boolean @default(false)
 }
 

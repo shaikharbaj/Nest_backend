@@ -208,3 +208,17 @@ main()
     api_key: '892445676793415'
   }
 ]
+
+
+
+
+//   if (ids.length > 0) {
+          //     //delete...
+          //     await this.prisma.category.deleteMany({
+          //       where: {
+          //         id: {
+          //           in: ids,
+          //         },
+          //       },
+          //     });
+          //   }

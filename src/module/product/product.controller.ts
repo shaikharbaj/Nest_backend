@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Res,
   UploadedFile,
   UploadedFiles,
@@ -28,12 +29,27 @@ export class ProductController {
 
   @UseGuards(JwtGuard)
   @Get('/supplier/all')
-  async getAllProductsforSupplier(@Auth() auth: any, @Res() res: Response) {
-    return await this.productservice.getAllProductsforSupplier(auth, res);
+  async getAllProductsforSupplier(
+    @Auth() auth: any,
+    @Query() payload: any,
+    @Res() res: Response,
+  ) {
+    const { page, searchTerm }: { page: number; searchTerm: string } = payload;
+    return await this.productservice.getAllProductsforSupplier(
+      auth,
+      page,
+      searchTerm,
+      res,
+    );
   }
   @Get('all')
-  async getallproducts(@Res() res: Response) {
-    return await this.productservice.getallproducts(res);
+  async getallproducts(@Query() payload: any, @Res() res: Response) {
+    const { page, searchTerm }: { page: number; searchTerm: string } = payload;
+    return await this.productservice.getallproducts(
+      Number(page),
+      searchTerm,
+      res,
+    );
   }
   @Get('/getproductbyID/:id')
   async getSingleProduct(@Param('id') id: number, @Res() res: Response) {

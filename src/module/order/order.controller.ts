@@ -5,6 +5,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Res,
   UseGuards,
 } from '@nestjs/common';
@@ -31,6 +32,11 @@ export class OrderController {
     return await this.orderservice.orderproduct(auth, data, res);
   }
 
+  @Get('/generate_invoice/:id')
+  async generateInvoice(@Param('id') id: number, @Res() res: Response) {
+    return await this.orderservice.generate_invoice(id, res);
+  }
+
   @UseGuards(JwtGuard)
   @Get('/getallorderofcustomer')
   async getallorderofcustomer(@Auth() auth: any, @Res() res: Response) {
@@ -47,8 +53,18 @@ export class OrderController {
   }
   @UseGuards(JwtGuard)
   @Get('/loadallsupplierorders')
-  async loadallsupplierorders(@Auth() auth: any, @Res() res: Response) {
-    return await this.orderservice.loadallsupplierorders(auth, res);
+  async loadallsupplierorders(
+    @Auth() auth: any,
+    @Query() payload: any,
+    @Res() res: Response,
+  ) {
+    const { page, searchTerm }: { page: number; searchTerm: string } = payload;
+    return await this.orderservice.loadallsupplierorders(
+      auth,
+      page,
+      searchTerm,
+      res,
+    );
   }
 
   @UseGuards(JwtGuard)

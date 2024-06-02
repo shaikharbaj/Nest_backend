@@ -27,6 +27,41 @@ export class CategoryController {
     return await this.categoryService.getcategoryforFilter(res);
   }
 
+  @Get('/all')
+  async getAllCategory(@Res() res: Response) {
+    return await this.categoryService.getAllCategories(res);
+  }
+  @Get('/allactiveCategory')
+  async getAllActiveCategory(@Res() res: Response) {
+    return await this.categoryService.getAllActiveCategories(res);
+  }
+  @Get('all/subcataegories')
+  async getallsubcategories(@Res() res: Response) {
+    return await this.categoryService.getallsubcategories(res);
+  }
+  @Get('/allsubactivecataegories')
+  async getallActiveSubcategories(@Res() res: Response) {
+    return await this.categoryService.getallActivesubcategories(res);
+  }
+  @Get('sub_of_single_category/:id')
+  async sub_of_single_category(
+    @Param('id') id: number,
+    @Res() response: Response,
+  ) {
+    return await this.categoryService.sub_of_single_category(id, response);
+  }
+  @Get(':id')
+  async getcategorybyID(@Param('id') id: number, @Res() res: Response) {
+    return await this.categoryService.getcategorybyId(id, res);
+  }
+  @Get('/subcategory/:id')
+  async getsubcategorysubcategory(
+    @Param('id') id: number,
+    @Res() res: Response,
+  ) {
+    return await this.categoryService.getsubcategorysubcategory(id, res);
+  }
+
   @HasPermission(categoryModulePermission.ADD)
   @UseGuards(JwtGuard, RolesGuard)
   @Post('/add')
@@ -51,7 +86,15 @@ export class CategoryController {
   ) {
     return await this.categoryService.editcategory(data, id, res);
   }
-
+   
+  @Patch("/togglecategorystatus/:id")
+  async togglecategoryStatus(@Param("id") id:number,@Res() res:Response){
+        return await this.categoryService.togglecategorystatus(id,res);
+  }
+  @Patch("/togglesubcategorystatus/:id")
+  async togglesubcategorystatus(@Param("id") id:number,@Res() res:Response){
+        return await this.categoryService.togglesubcategorystatus(id,res);
+  }
   @HasPermission(subCategoryModulePermission.UPDATE)
   @UseGuards(JwtGuard, RolesGuard)
   @Patch('/edit/subcategory/:id')
@@ -62,32 +105,7 @@ export class CategoryController {
   ) {
     return await this.categoryService.updatesubCategory(data, id, res);
   }
-  @Get('/all')
-  async getAllCategory(@Res() res: Response) {
-    return await this.categoryService.getAllCategories(res);
-  }
-  @Get('all/subcataegories')
-  async getallsubcategories(@Res() res: Response) {
-    return await this.categoryService.getallsubcategories(res);
-  }
-  @Get('sub_of_single_category/:id')
-  async sub_of_single_category(
-    @Param('id') id: number,
-    @Res() response: Response,
-  ) {
-    return await this.categoryService.sub_of_single_category(id, response);
-  }
-  @Get(':id')
-  async getcategorybyID(@Param('id') id: number, @Res() res: Response) {
-    return await this.categoryService.getcategorybyId(id, res);
-  }
-  @Get('/subcategory/:id')
-  async getsubcategorysubcategory(
-    @Param('id') id: number,
-    @Res() res: Response,
-  ) {
-    return await this.categoryService.getsubcategorysubcategory(id, res);
-  }
+
   @HasPermission(categoryModulePermission.DELETE)
   @UseGuards(JwtGuard, RolesGuard)
   @Delete('delete/:id')

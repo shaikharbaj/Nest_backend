@@ -28,7 +28,17 @@ export interface PaginatedResult<T> {
         }),
       ]);
       const lastPage = Math.ceil(total / perPage);
-  
+      console.log({
+        data,
+        meta: {
+          total,
+          lastPage,
+          currentPage: page,
+          perPage,
+          prev: page > 1 ? page - 1 : null,
+          next: page < lastPage ? page + 1 : null,
+        },
+      })
       return {
         data,
         meta: {
