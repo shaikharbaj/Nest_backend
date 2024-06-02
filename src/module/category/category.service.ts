@@ -1,11 +1,22 @@
 import { HttpCode, HttpStatus, Injectable } from '@nestjs/common';
 import { Response } from 'express';
 import { PrismaService } from '../prisma/prismaservice';
-
+import { PaginateFunction, paginator } from '../prisma/paginator';
+import { contains } from 'class-validator';
+const paginate: PaginateFunction = paginator({ perPage: 10 });
 @Injectable()
 export class CategoryService {
   constructor(private readonly prisma: PrismaService) {}
-
+  async findManywithPagination(select: {}, where: any, page: number = 1) {
+    return await paginate(
+      this.prisma.category,
+      {
+        select: select,
+        where: { ...where },
+      },
+      { page },
+    );
+  }
   async addCategory(payload: any, res: Response) {
     try {
       //check it is already present...
@@ -69,19 +80,37 @@ export class CategoryService {
         .json({ success: false, message: error.message });
     }
   }
-  async getAllCategories(res: Response) {
+  async getAllCategories(page: number, searchTerm: string, res: Response) {
     try {
-      const data = await this.prisma.category.findMany({
-        where: {
-          AND: [{ parent_id: null }],
-        },
-      });
+      const select: any = {
+        id: true,
+        name: true,
+        category_status:true,
+        createdAt: true,
+        updatedAt: true,
+      };
+      const where: any = {
+        parent_id: null,
+        OR: [
+          {
+            name: { contains: searchTerm, mode: 'insensitive' },
+          },
+        ],
+      };
+      // const data = await this.prisma.category.findMany({
+      //   where: {
+      //     AND: [{ parent_id: null }],
+      //   },
+      // });
+      const data = await this.findManywithPagination(select, where, page);
+      console.log(data);
       return res.status(HttpStatus.OK).json({
         success: true,
         message: 'all cataegory fetch successfully.!',
         data,
       });
     } catch (error) {
+      console.log(error);
       return res
         .status(HttpStatus.BAD_REQUEST)
         .json({ success: false, message: error.message });
@@ -214,10 +243,7 @@ export class CategoryService {
     try {
       const checkcategoriesexist = await this.prisma.category.findFirst({
         where: {
-          AND:[
-            {id: Number(id)},
-            {parent_id: null}
-          ]
+          AND: [{ id: Number(id) }, { parent_id: null }],
         },
       });
       if (!checkcategoriesexist) {
@@ -227,10 +253,7 @@ export class CategoryService {
       }
       const data = await this.prisma.category.findMany({
         where: {
-          AND:[
-            {parent_id: Number(id)},
-            {subcategory_status:true}
-          ],
+          AND: [{ parent_id: Number(id) }, { subcategory_status: true }],
         },
         include: {
           parent: {
@@ -626,8 +649,8 @@ export class CategoryService {
         //change status
         if (checkexist.subcategory_status) {
           data = await this.prisma.category.update({
-            include:{
-                parent:true
+            include: {
+              parent: true,
             },
             where: {
               id: checkexist.id,
@@ -638,8 +661,8 @@ export class CategoryService {
           });
         } else {
           data = await this.prisma.category.update({
-            include:{
-                  parent:true
+            include: {
+              parent: true,
             },
             where: {
               id: checkexist.id,
@@ -650,10 +673,10 @@ export class CategoryService {
           });
         }
         return res.status(HttpStatus.OK).json({
-            success: true,
-            message: 'subcataegory status updated successfully.!',
-            data,
-          });
+          success: true,
+          message: 'subcataegory status updated successfully.!',
+          data,
+        });
       }
     } catch (error) {
       return res

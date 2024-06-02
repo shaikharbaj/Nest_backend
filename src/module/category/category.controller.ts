@@ -5,6 +5,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Res,
   UseGuards,
 } from '@nestjs/common';
@@ -28,8 +29,10 @@ export class CategoryController {
   }
 
   @Get('/all')
-  async getAllCategory(@Res() res: Response) {
-    return await this.categoryService.getAllCategories(res);
+  async getAllCategory(@Query() payload: any,@Res() res: Response) {
+    const { page, searchTerm }: { page: number; searchTerm: string } = payload;
+    return await this.categoryService.getAllCategories( Number(page),
+    searchTerm,res);
   }
   @Get('/allactiveCategory')
   async getAllActiveCategory(@Res() res: Response) {
