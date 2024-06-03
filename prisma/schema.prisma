@@ -121,20 +121,60 @@ model Banner {
 }
 
 model Category {
-  id                  Int        @id @default(autoincrement())
+  id                  Int              @id @default(autoincrement())
   name                String
-  createdAt           DateTime   @default(now())
-  updatedAt           DateTime   @updatedAt
-  parent              Category?  @relation("ParentCategory", fields: [parent_id], references: [id])
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+  parent              Category?        @relation("ParentCategory", fields: [parent_id], references: [id])
   parent_id           Int?
-  Category            Category[] @relation("ParentCategory")
-  blogs               Blog[]     @relation("blogcategory")
-  subcategory         Blog[]     @relation("blogsubcategory")
-  category_status     Boolean    @default(true)
+  Category            Category[]       @relation("ParentCategory")
+  blogs               Blog[]           @relation("blogcategory")
+  subcategory         Blog[]           @relation("blogsubcategory")
+  category_status     Boolean          @default(true)
   subcategory_status  Boolean?
-  products            Product[]  @relation("CategoryProducts")
-  subcategoryProducts Product[]  @relation("SubcategoryProducts")
+  products            Product[]        @relation("CategoryProducts")
+  subcategoryProducts Product[]        @relation("SubcategoryProducts")
+  attributeUnit       AttributesUnit[]
+  attributes          Attributes[]
+
   @@map("category")
+}
+
+model AttributesUnit {
+  id          Int      @id @default(autoincrement())
+  name        String
+  status      Boolean  @default(false)
+  category_id Int
+  category    Category @relation(fields: [category_id], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("attributes_unit")
+}
+
+model Attributes {
+  id              Int               @id @default(autoincrement())
+  name            String
+  status          Boolean           @default(false)
+  required        Boolean           @default(false)
+  category        Category?         @relation(fields: [categoryId], references: [id])
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  categoryId      Int?
+  attributevalues AttributesValue[]
+
+  @@map("attributes")
+}
+
+model AttributesValue {
+  id            Int         @id @default(autoincrement())
+  name          String
+  attributes    Attributes? @relation(fields: [attributes_id], references: [id])
+  attributes_id Int?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@map("attribute_value")
 }
 
 model Blog {
@@ -218,7 +258,7 @@ model productImages {
   id          Int     @id @default(autoincrement())
   url         String
   product_id  Int
-  product     Product @relation(fields: [product_id], references: [id],onDelete: Cascade)
+  product     Product @relation(fields: [product_id], references: [id], onDelete: Cascade)
   isThumbnail Boolean @default(false)
 }
 
