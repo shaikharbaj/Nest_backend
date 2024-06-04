@@ -16,17 +16,18 @@ import { Response } from 'express';
 export class AttributeunitController {
   constructor(private readonly attributeunitService: AttributeunitService) {}
 
-
-  @Get("/all")
-  async getallattributeUnit(@Query() payload:any,@Res() res:Response){
-         const { page, searchTerm }: { page: number; searchTerm: string } = payload;
-          return await this.attributeunitService.getallattributeUnit(Number(page),
-          searchTerm,
-          res,);
+  @Get('/all')
+  async getallattributeUnit(@Query() payload: any, @Res() res: Response) {
+    const { page, searchTerm }: { page: number; searchTerm: string } = payload;
+    return await this.attributeunitService.getallattributeUnit(
+      Number(page),
+      searchTerm,
+      res,
+    );
   }
-  @Get("loadattributeuniteById/:id")
-  async loadattributeuniteById(@Param("id") id:number,@Res() res:Response){
-       return await this.attributeunitService.loadattributeuniteById(id,res)
+  @Get('loadattributeuniteById/:id')
+  async loadattributeuniteById(@Param('id') id: number, @Res() res: Response) {
+    return await this.attributeunitService.loadattributeuniteById(id, res);
   }
   @Post('/add')
   async addAttributeUnit(@Body() data: any, @Res() res: Response) {
@@ -44,5 +45,10 @@ export class AttributeunitController {
   @Delete('/delete/:id')
   async deleteAttributeUnit(@Param('id') id: number, @Res() res: Response) {
     return await this.attributeunitService.deleteAttributeUnit(id, res);
+  }
+
+  @Patch('/change_status/:id')
+  async changestatus(@Param('id') id: number, @Res() res: Response) {
+    return await this.attributeunitService.changestatus(id, res);
   }
 }

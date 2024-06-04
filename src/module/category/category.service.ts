@@ -85,7 +85,7 @@ export class CategoryService {
       const select: any = {
         id: true,
         name: true,
-        category_status:true,
+        category_status: true,
         createdAt: true,
         updatedAt: true,
       };

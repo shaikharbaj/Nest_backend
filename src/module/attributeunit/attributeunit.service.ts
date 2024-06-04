@@ -20,21 +20,21 @@ export class AttributeunitService {
     );
   }
 
-  async loadattributeuniteById(id:number,res:Response){
+  async loadattributeuniteById(id: number, res: Response) {
     try {
-       const data = await this.prisma.attributesUnit.findFirst({
-       include:{category:true},
-        where:{
-              id:Number(id)
-        }
-       })
-       return res
+      const data = await this.prisma.attributesUnit.findFirst({
+        include: { category: true },
+        where: {
+          id: Number(id),
+        },
+      });
+      return res
         .status(HttpStatus.OK)
         .json({ message: 'attributes units fetch successfully', data });
     } catch (error) {
       return res
-      .status(HttpStatus.BAD_REQUEST)
-      .json({ success: false, message: error.message });
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ success: false, message: error.message });
     }
   }
   async getallattributeUnit(page: number, searchTerm: string, res: Response) {
@@ -146,7 +146,7 @@ export class AttributeunitService {
     } catch (error) {
       return res
         .status(HttpStatus.BAD_REQUEST)
-        .json({ success: false, error: error.message });
+        .json({ success: false, message: error.message });
     }
   }
   async deleteAttributeUnit(id: number, res: Response) {
@@ -158,7 +158,7 @@ export class AttributeunitService {
           },
         });
       if (!checkattributeuniteAlreadyPresent) {
-        throw new Error('attribute unite with this id is not present');
+        throw new Error('attribute unit with this id is not present');
       }
       //delete them....
       const deleteddata = await this.prisma.attributesUnit.delete({
@@ -167,14 +167,65 @@ export class AttributeunitService {
         },
       });
       return res.status(HttpStatus.OK).json({
-        message: 'attribute unite deleted successfully',
+        message: 'attribute unit deleted successfully',
         success: true,
         data: deleteddata,
       });
     } catch (error) {
+      console.log(error.message);
       return res
         .status(HttpStatus.BAD_REQUEST)
-        .json({ success: false, error: error.message });
+        .json({ success: false, message: error.message });
+    }
+  }
+
+  async changestatus(id: number, res: Response) {
+    try {
+      const checkattributeuniteAlreadyPresent =
+        await this.prisma.attributesUnit.findFirst({
+          where: {
+            id: Number(id),
+          },
+        });
+      if (!checkattributeuniteAlreadyPresent) {
+        throw new Error('attribute unit with this id is not present');
+      }
+      //change the status
+      let change_status: any;
+      if (checkattributeuniteAlreadyPresent.status) {
+        change_status = await this.prisma.attributesUnit.update({
+          include: {
+            category: true,
+          },
+          where: {
+            id: Number(id),
+          },
+          data: {
+            status: false,
+          },
+        });
+      } else {
+        change_status = await this.prisma.attributesUnit.update({
+          include: {
+            category: true,
+          },
+          where: {
+            id: Number(id),
+          },
+          data: {
+            status: true,
+          },
+        });
+      }
+      return res.status(HttpStatus.OK).json({
+        message: 'attribute unit status updated successfully',
+        success: true,
+        data: change_status,
+      });
+    } catch (error) {
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ success: false, message: error.message });
     }
   }
 }

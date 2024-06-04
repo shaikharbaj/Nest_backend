@@ -14,6 +14,7 @@ import { OrderModule } from "./order/order.module";
 import { StripeModule } from "./stripe/stripe.module";
 import { AttributeunitModule } from "./attributeunit/attributeunit.module";
 import { AttributeModule } from "./attribute/attribute.module";
+import { AttributevalueModule } from "./attributevalue/attributevalue.module";
 export {
     PrismaModule,
     UserModule,
@@ -30,5 +31,6 @@ export {
     OrderModule,
     StripeModule,
     AttributeunitModule,
-    AttributeModule
+    AttributeModule,
+    AttributevalueModule
 }
