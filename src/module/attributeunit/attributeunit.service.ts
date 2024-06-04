@@ -19,6 +19,24 @@ export class AttributeunitService {
       { page },
     );
   }
+
+  async loadattributeuniteById(id:number,res:Response){
+    try {
+       const data = await this.prisma.attributesUnit.findFirst({
+       include:{category:true},
+        where:{
+              id:Number(id)
+        }
+       })
+       return res
+        .status(HttpStatus.OK)
+        .json({ message: 'attributes units fetch successfully', data });
+    } catch (error) {
+      return res
+      .status(HttpStatus.BAD_REQUEST)
+      .json({ success: false, message: error.message });
+    }
+  }
   async getallattributeUnit(page: number, searchTerm: string, res: Response) {
     try {
       const select: any = {

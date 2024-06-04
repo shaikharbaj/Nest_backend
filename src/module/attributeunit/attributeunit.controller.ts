@@ -24,6 +24,10 @@ export class AttributeunitController {
           searchTerm,
           res,);
   }
+  @Get("loadattributeuniteById/:id")
+  async loadattributeuniteById(@Param("id") id:number,@Res() res:Response){
+       return await this.attributeunitService.loadattributeuniteById(id,res)
+  }
   @Post('/add')
   async addAttributeUnit(@Body() data: any, @Res() res: Response) {
     return await this.attributeunitService.addAttributeUnit(data, res);
