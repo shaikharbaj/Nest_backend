@@ -22,7 +22,11 @@ export class AttributeService {
   async loadattributeById(id: number, res: Response) {
     try {
       const data = await this.prisma.attributes.findFirst({
-        include: { category: true, attributevalues: true },
+        include: { category: {
+             include:{
+                  attributeUnit:true
+             }
+        }, attributevalues: true },
         where: {
           id: Number(id),
         },
