@@ -141,13 +141,14 @@ model Category {
 }
 
 model AttributesUnit {
-  id          Int      @id @default(autoincrement())
-  name        String
-  status      Boolean  @default(false)
-  category_id Int
-  category    Category @relation(fields: [category_id], references: [id])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id             Int              @id @default(autoincrement())
+  name           String
+  status         Boolean          @default(false)
+  category_id    Int
+  category       Category         @relation(fields: [category_id], references: [id])
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  attrubutevalue AttributesValue[]
 
   @@map("attributes_unit")
 }
@@ -160,19 +161,22 @@ model Attributes {
   category        Category?         @relation(fields: [category_id], references: [id])
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
-  category_id      Int?
+  category_id     Int?
   attributevalues AttributesValue[]
 
   @@map("attributes")
 }
 
 model AttributesValue {
-  id            Int         @id @default(autoincrement())
-  name          String
-  attributes    Attributes? @relation(fields: [attributes_id], references: [id])
-  attributes_id Int?
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  id               Int             @id @default(autoincrement())
+  name             String
+  status           Boolean         @default(false)
+  attributes       Attributes      @relation(fields: [attributes_id], references: [id])
+  attributes_id    Int
+  attributeunit    AttributesUnit? @relation(fields: [attributeunit_id], references: [id])
+  attributeunit_id Int?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
 
   @@map("attribute_value")
 }
