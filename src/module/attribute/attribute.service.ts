@@ -22,11 +22,14 @@ export class AttributeService {
   async loadattributeById(id: number, res: Response) {
     try {
       const data = await this.prisma.attributes.findFirst({
-        include: { category: {
-             include:{
-                  attributeUnit:true
-             }
-        }, attributevalues: true },
+        include: {
+          category: {
+            include: {
+              attributeUnit: true,
+            },
+          },
+          attributevalues: true,
+        },
         where: {
           id: Number(id),
         },
@@ -248,6 +251,36 @@ export class AttributeService {
       return res
         .status(HttpStatus.OK)
         .json({ message: 'attributes with value fetch successfully', data });
+    } catch (error) {
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ success: false, message: error.message });
+    }
+  }
+
+  async getactiveattributeby_category_id(id: number, res: Response) {
+    try {
+      console.log(id);
+      const checkcategoryexist = await this.prisma.category.findFirst({
+        where: {
+          id: Number(id),
+        },
+      });
+      if (!checkcategoryexist) {
+        throw new Error('category with this id is not found');
+      }
+      //get all attributes....
+      const attributes = await this.prisma.attributes.findMany({
+        where: {
+          category_id: Number(id),
+          status: true,
+        },
+      });
+      return res.status(HttpStatus.OK).json({
+        success: true,
+        message: 'attributes fetch successfully',
+        data: attributes,
+      });
     } catch (error) {
       return res
         .status(HttpStatus.BAD_REQUEST)

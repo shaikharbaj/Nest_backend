@@ -259,4 +259,39 @@ export class AttributevalueService {
         .json({ success: false, message: error.message });
     }
   }
+
+  //get all active attribute value.......................
+  async getActiveAttributeValueById(id: number, res: Response) {
+    try {
+      //check attribute is present or not
+      console.log(id)
+      const checkattributeisPresent = await this.prisma.attributes.findFirst({
+        where: {
+          id: Number(id),
+        },
+      });
+      if (!checkattributeisPresent) {
+        throw new Error('attribute with this id is not present');
+      }
+      const data = await this.prisma.attributesValue.findMany({
+        include: {
+          attributeunit: true,
+          attributes: true,
+        },
+        where: {
+          attributes_id: Number(id),
+          status: true,
+        },
+      });
+      return res.status(HttpStatus.OK).json({
+        message: 'active attribute value fetch successfully',
+        success: true,
+        data: data,
+      });
+    } catch (error) {
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ success: false, message: error.message });
+    }
+  }
 }

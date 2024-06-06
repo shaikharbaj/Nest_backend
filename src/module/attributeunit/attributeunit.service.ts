@@ -58,7 +58,7 @@ export class AttributeunitService {
         .json({ success: false, message: error.message });
     }
   }
-  async addAttributeUnit(data: any, res: Response) {
+  async addAttributeUnit(auth: any, data: any, res: Response) {
     try {
       //check category exist or not....
       const checkcategoryexist = await this.prisma.category.findFirst({
@@ -86,6 +86,7 @@ export class AttributeunitService {
           name: data?.name,
           category_id: Number(data?.category_id),
           status: data?.status,
+          createdBy: Number(auth?.userId),
         },
       });
 
@@ -221,6 +222,33 @@ export class AttributeunitService {
         message: 'attribute unit status updated successfully',
         success: true,
         data: change_status,
+      });
+    } catch (error) {
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ success: false, message: error.message });
+    }
+  }
+  async getattributeunitbycategory_id(id: number, res: Response) {
+    try {
+      //check attribute is present or not...
+      const checkcategoryispresent = await this.prisma.category.findFirst({
+        where: {
+          id: Number(id),
+        },
+      });
+      if (!checkcategoryispresent) {
+        throw new Error('category is not present with this id');
+      }
+      const attributeunit = await this.prisma.attributesUnit.findMany({
+        where: {
+          category_id: Number(id),
+        },
+      });
+      return res.status(HttpStatus.OK).json({
+        success: true,
+        message: 'attribute unit fetch successfully',
+        data: attributeunit,
       });
     } catch (error) {
       return res

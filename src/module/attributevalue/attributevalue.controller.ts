@@ -19,6 +19,11 @@ export class AttributevalueController {
     return await this.attributevalueService.getAttributeValueById(id, res);
   }
 
+  @Get('/getactiveattributevaluebyid/:id')
+  async getActiveAttributevaluebyId(@Param('id') id: number, @Res() res: Response) {
+    return await this.attributevalueService.getActiveAttributeValueById(id, res);
+  }
+
   @Post('/create')
   async createAttributevalue(@Body() data: any, @Res() res: Response) {
     return await this.attributevalueService.createAttributeValue(data, res);

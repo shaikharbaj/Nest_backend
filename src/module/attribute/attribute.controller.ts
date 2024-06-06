@@ -32,7 +32,10 @@ export class AttributeController {
       res,
     );
   }
-
+  @Get("/getactiveattribute_by_category_id/:id")
+  async getactiveattributeby_category_id(@Param("id") id:number,@Res() res:Response){
+        return await this.attributeService.getactiveattributeby_category_id(id,res);
+  }
   @Get('loadattributeById/:id')
   async loadattributeById(@Param('id') id: number, @Res() res: Response) {
     return await this.attributeService.loadattributeById(id, res);

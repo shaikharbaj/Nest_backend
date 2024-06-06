@@ -141,14 +141,16 @@ model Category {
 }
 
 model AttributesUnit {
-  id             Int              @id @default(autoincrement())
+  id             Int               @id @default(autoincrement())
   name           String
-  status         Boolean          @default(false)
+  status         Boolean           @default(false)
   category_id    Int
-  category       Category         @relation(fields: [category_id], references: [id])
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
+  category       Category          @relation(fields: [category_id], references: [id])
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  createdBy      Int
   attrubutevalue AttributesValue[]
+  product        Product[]
 
   @@map("attributes_unit")
 }
@@ -163,6 +165,7 @@ model Attributes {
   updatedAt       DateTime          @updatedAt
   category_id     Int?
   attributevalues AttributesValue[]
+  product         Product[]
 
   @@map("attributes")
 }
@@ -177,6 +180,7 @@ model AttributesValue {
   attributeunit_id Int?
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
+  product          Product[]
 
   @@map("attribute_value")
 }
@@ -239,23 +243,29 @@ model Supplier {
 }
 
 model Product {
-  id             Int             @id @default(autoincrement())
-  name           String
-  slug           String
-  description    String
-  originalprice  Float
-  discountprice  Float?
-  stock          Int
-  image          String?
-  category_id    Int
-  subcategory_id Int
-  cartItems      CartItem[]
-  category       Category        @relation("CategoryProducts", fields: [category_id], references: [id])
-  subcategory    Category?       @relation("SubcategoryProducts", fields: [subcategory_id], references: [id])
-  supplier_id    Int
-  supplier       User            @relation(fields: [supplier_id], references: [id])
-  orderItems     OrderItem[]
-  productImages  productImages[]
+  id                 Int              @id @default(autoincrement())
+  name               String
+  slug               String
+  description        String
+  originalprice      Float
+  discountprice      Float?
+  stock              Int
+  image              String?
+  category_id        Int
+  subcategory_id     Int
+  cartItems          CartItem[]
+  category           Category         @relation("CategoryProducts", fields: [category_id], references: [id])
+  subcategory        Category?        @relation("SubcategoryProducts", fields: [subcategory_id], references: [id])
+  supplier_id        Int
+  supplier           User             @relation(fields: [supplier_id], references: [id])
+  orderItems         OrderItem[]
+  productImages      productImages[]
+  AttributesUnit     AttributesUnit?  @relation(fields: [attributesunit_Id], references: [id])
+  attributesunit_Id  Int?
+  Attributes         Attributes?      @relation(fields: [attributes_Id], references: [id])
+  attributes_Id      Int?
+  AttributesValue    AttributesValue? @relation(fields: [attributesvalue_Id], references: [id])
+  attributesvalue_Id Int?
 }
 
 model productImages {
