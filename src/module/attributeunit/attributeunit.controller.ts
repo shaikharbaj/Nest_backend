@@ -19,10 +19,18 @@ import { Auth } from '../user/dto/authdto';
 export class AttributeunitController {
   constructor(private readonly attributeunitService: AttributeunitService) {}
 
-
-  @Get("/getattributeunitby_categoty_id/:id")
-  async getattributeunitbyCategory_id(@Param("id") id:number,@Res() res:Response){
-        return await this.attributeunitService.getattributeunitbycategory_id(id,res);
+  @UseGuards(JwtGuard)
+  @Get('/getattributeunitby_categoty_id/:id')
+  async getattributeunitbyCategory_id(
+    @Auth() auth: any,
+    @Param('id') id: number,
+    @Res() res: Response,
+  ) {
+    return await this.attributeunitService.getattributeunitbycategory_id(
+      auth,
+      id,
+      res,
+    );
   }
   @Get('/all')
   async getallattributeUnit(@Query() payload: any, @Res() res: Response) {
@@ -40,9 +48,13 @@ export class AttributeunitController {
 
   @UseGuards(JwtGuard)
   @Post('/add')
-  async addAttributeUnit(@Auth() auth:any,@Body() data: any, @Res() res: Response) {
-    console.log(auth)
-    return await this.attributeunitService.addAttributeUnit(auth,data, res);
+  async addAttributeUnit(
+    @Auth() auth: any,
+    @Body() data: any,
+    @Res() res: Response,
+  ) {
+    console.log(auth);
+    return await this.attributeunitService.addAttributeUnit(auth, data, res);
   }
 
   @Patch('/edit/:id')

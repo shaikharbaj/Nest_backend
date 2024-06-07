@@ -229,7 +229,7 @@ export class AttributeunitService {
         .json({ success: false, message: error.message });
     }
   }
-  async getattributeunitbycategory_id(id: number, res: Response) {
+  async getattributeunitbycategory_id(auth: any, id: number, res: Response) {
     try {
       //check attribute is present or not...
       const checkcategoryispresent = await this.prisma.category.findFirst({
@@ -240,9 +240,25 @@ export class AttributeunitService {
       if (!checkcategoryispresent) {
         throw new Error('category is not present with this id');
       }
+      const adminUsers = await this.prisma.user.findMany({
+        where: {
+          role: {
+            name: 'ADMIN',
+          },
+        },
+      });
+      const adminIds = adminUsers.map((user) => user.id);
+      const condition: any = [...adminIds];
+      if (auth?.userType === 'SUPPLIER') {
+        condition.push(Number(auth?.userId));
+      }
+      console.log(condition)
       const attributeunit = await this.prisma.attributesUnit.findMany({
         where: {
           category_id: Number(id),
+          createdBy: {
+            in: condition,
+          },
         },
       });
       return res.status(HttpStatus.OK).json({
