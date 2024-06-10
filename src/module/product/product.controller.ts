@@ -71,7 +71,7 @@ export class ProductController {
     @Res() res: Response,
   ) {
     console.log(data?.variants);
-    // return await this.productservice.addproduct(auth, data, files, res);
+    return await this.productservice.addproduct(auth, data, files, res);
   }
 
   @HasPermission(productModulePermission.UPDATE)

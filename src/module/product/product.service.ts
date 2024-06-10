@@ -174,6 +174,7 @@ export class ProductService {
     res: Response,
   ) {
     try {
+      const variants = data?.variants;
       const payload: any = {
         name: data.name,
         description: data.description,
@@ -185,7 +186,6 @@ export class ProductService {
         supplier_id: Number(auth.userId),
       };
       let imagepayload: any = [];
-
       if (files) {
         const result: any = await this.cloudinary.uploadImages(files);
         console.log(result);
@@ -196,11 +196,11 @@ export class ProductService {
             imagepayload.push({ url: i.url, isThumbnail: false });
           }
         });
-
         // console.log(result)
         // payload.image = result.url; // Add avatar property if image upload successful
       }
       const slug = this.slugify(payload?.name);
+
       const product = await this.prisma.product.create({
         data: {
           name: payload.name,
@@ -216,8 +216,28 @@ export class ProductService {
           productImages: {
             create: imagepayload,
           },
+          variants: {
+            create: variants.map((variant: any) => ({
+              // quantity: variant.quantity,
+              varientValue: {
+                // create: variant.values
+                create: variant
+                  .filter((value: any) => Number(value.attributeValueId))
+                  .map((value:any) => ({
+                    attributes: {
+                      connect: { id: Number(value.attributeId) },
+                    },
+                    attributeValue: {
+                      connect: { id: Number(value.attributeValueId) },
+                    },
+                  })),
+              },
+            })),
+          },
         },
       });
+
+      //save
       return res.status(201).json({
         success: true,
         message: 'product added successfully',
