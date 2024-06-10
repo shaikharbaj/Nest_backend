@@ -271,6 +271,9 @@ export class AttributeService {
       }
       //get all attributes....
       const attributes = await this.prisma.attributes.findMany({
+        include:{
+             attributevalues:true
+        },
         where: {
           category_id: Number(id),
           status: true,
