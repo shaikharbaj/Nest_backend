@@ -297,10 +297,11 @@ model VarientValue {
 }
 
 model VariantImage {
-  id        Int     @id @default(autoincrement())
-  variantId Int
-  variant   Variant @relation(fields: [variantId], references: [id])
-  url       String
+  id          Int     @id @default(autoincrement())
+  isThumbnail Boolean @default(false)
+  variantId   Int
+  variant     Variant @relation(fields: [variantId], references: [id])
+  url         String
 }
 
 model ProductAttributes {

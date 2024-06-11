@@ -174,6 +174,7 @@ export class ProductService {
     res: Response,
   ) {
     try {
+      console.log(files)
       const variants = data?.variants;
       const payload: any = {
         name: data.name,
@@ -186,63 +187,65 @@ export class ProductService {
         supplier_id: Number(auth.userId),
       };
       let imagepayload: any = [];
-      if (files) {
-        const result: any = await this.cloudinary.uploadImages(files);
-        console.log(result);
-        result.forEach((i: any, index: number) => {
-          if (Number(data?.primaryImageIndex) == Number(index)) {
-            imagepayload.push({ url: i.url, isThumbnail: true });
-          } else {
-            imagepayload.push({ url: i.url, isThumbnail: false });
-          }
-        });
-        // console.log(result)
-        // payload.image = result.url; // Add avatar property if image upload successful
-      }
-      const slug = this.slugify(payload?.name);
+      // if (files) {
+      //   const result: any = await this.cloudinary.uploadImages(files);
+      //   console.log(result);
+      //   result.forEach((i: any, index: number) => {
+      //     if (Number(data?.primaryImageIndex) == Number(index)) {
+      //       imagepayload.push({ url: i.url, isThumbnail: true });
+      //     } else {
+      //       imagepayload.push({ url: i.url, isThumbnail: false });
+      //     }
+      //   });
+      //   // console.log(result)
+      //   // payload.image = result.url; // Add avatar property if image upload successful
+      // }
 
-      const product = await this.prisma.product.create({
-        data: {
-          name: payload.name,
-          description: payload.description,
-          originalprice: parseFloat(payload.originalprice),
-          discountprice: parseFloat(payload.discountprice),
-          slug: slug,
-          stock: payload.stock,
-          category_id: Number(payload.category_id),
-          subcategory_id: Number(payload.subcategory_id),
-          image: payload.image,
-          supplier_id: payload.supplier_id,
-          productImages: {
-            create: imagepayload,
-          },
-          variants: {
-            create: variants.map((variant: any) => ({
-              // quantity: variant.quantity,
-              varientValue: {
-                // create: variant.values
-                create: variant
-                  .filter((value: any) => Number(value.attributeValueId))
-                  .map((value:any) => ({
-                    attributes: {
-                      connect: { id: Number(value.attributeId) },
-                    },
-                    attributeValue: {
-                      connect: { id: Number(value.attributeValueId) },
-                    },
-                  })),
-              },
-            })),
-          },
-        },
-      });
+      // console.log();
+      // const slug = this.slugify(payload?.name);
+
+      // const product = await this.prisma.product.create({
+      //   data: {
+      //     name: payload.name,
+      //     description: payload.description,
+      //     originalprice: parseFloat(payload.originalprice),
+      //     discountprice: parseFloat(payload.discountprice),
+      //     slug: slug,
+      //     stock: payload.stock,
+      //     category_id: Number(payload.category_id),
+      //     subcategory_id: Number(payload.subcategory_id),
+      //     image: payload.image,
+      //     supplier_id: payload.supplier_id,
+      //     productImages: {
+      //       create: imagepayload,
+      //     },
+      //     variants: {
+      //       create: variants.map((variant: any) => ({
+      //         // quantity: variant.quantity,
+      //         varientValue: {
+      //           // create: variant.values
+      //           create: variant
+      //             .filter((value: any) => Number(value.attributeValueId))
+      //             .map((value: any) => ({
+      //               attributes: {
+      //                 connect: { id: Number(value.attributeId) },
+      //               },
+      //               attributeValue: {
+      //                 connect: { id: Number(value.attributeValueId) },
+      //               },
+      //             })),
+      //         },
+      //       })),
+      //     },
+      //   },
+      // });
 
       //save
-      return res.status(201).json({
-        success: true,
-        message: 'product added successfully',
-        data: product,
-      });
+      // return res.status(201).json({
+      //   success: true,
+      //   message: 'product added successfully',
+      //   data: product,
+      // });
     } catch (error) {
       console.log(error);
 

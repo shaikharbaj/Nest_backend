@@ -16,6 +16,7 @@ import {
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { Auth } from '../user/dto/authdto';
 import { FileValidationPipe } from 'src/exceptions/filetypeandsize';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { ProductService } from './product.service';
 import { Response } from 'express';
 import { JwtGuard } from '../user/guards/jwt.guards';
@@ -62,7 +63,12 @@ export class ProductController {
 
   @HasPermission(productModulePermission.ADD)
   @UseGuards(JwtGuard, RolesGuard)
-  @UseInterceptors(FilesInterceptor('images'))
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'images', maxCount: 10 },
+      { name: 'variants' },
+    ]),
+  )
   @Post('/add')
   async addProduct(
     @Auth() auth: any,
@@ -70,8 +76,9 @@ export class ProductController {
     @Body() data: any,
     @Res() res: Response,
   ) {
-    console.log(data?.variants);
-    return await this.productservice.addproduct(auth, data, files, res);
+    console.log(files);
+    // console.log(data?.variants);
+    // return await this.productservice.addproduct(auth, data, files, res);
   }
 
   @HasPermission(productModulePermission.UPDATE)
