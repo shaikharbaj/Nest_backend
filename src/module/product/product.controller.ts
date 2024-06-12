@@ -64,10 +64,7 @@ export class ProductController {
   @HasPermission(productModulePermission.ADD)
   @UseGuards(JwtGuard, RolesGuard)
   @UseInterceptors(
-    FileFieldsInterceptor([
-      { name: 'images', maxCount: 10 },
-      { name: 'variants' },
-    ]),
+    FileFieldsInterceptor([{ name: 'images' }, { name: 'variants' }]),
   )
   @Post('/add')
   async addProduct(
@@ -78,7 +75,12 @@ export class ProductController {
   ) {
     console.log(files);
     // console.log(data?.variants);
-    // return await this.productservice.addproduct(auth, data, files, res);
+    return await this.productservice.addproduct(
+      auth,
+      data,
+      files['images'],
+      res,
+    );
   }
 
   @HasPermission(productModulePermission.UPDATE)
@@ -99,5 +101,10 @@ export class ProductController {
   @Delete('delete/:id')
   async deleteProduct(@Param('id') id: number, @Res() res: Response) {
     return await this.productservice.deleteproduct(id, res);
+  }
+
+  @Post('/add-varient')
+  async add_varient(@Body() data: any, @Res() res: Response) {
+    return await this.productservice.addproductvarient(data, res);
   }
 }

@@ -174,8 +174,6 @@ export class ProductService {
     res: Response,
   ) {
     try {
-      console.log(files)
-      const variants = data?.variants;
       const payload: any = {
         name: data.name,
         description: data.description,
@@ -187,65 +185,47 @@ export class ProductService {
         supplier_id: Number(auth.userId),
       };
       let imagepayload: any = [];
-      // if (files) {
-      //   const result: any = await this.cloudinary.uploadImages(files);
-      //   console.log(result);
-      //   result.forEach((i: any, index: number) => {
-      //     if (Number(data?.primaryImageIndex) == Number(index)) {
-      //       imagepayload.push({ url: i.url, isThumbnail: true });
-      //     } else {
-      //       imagepayload.push({ url: i.url, isThumbnail: false });
-      //     }
-      //   });
-      //   // console.log(result)
-      //   // payload.image = result.url; // Add avatar property if image upload successful
-      // }
+      if (files) {
+        const result: any = await this.cloudinary.uploadImages(files);
+        console.log(result);
+        result.forEach((i: any, index: number) => {
+          if (Number(data?.primaryImageIndex) == Number(index)) {
+            imagepayload.push({ url: i.url, isThumbnail: true });
+          } else {
+            imagepayload.push({ url: i.url, isThumbnail: false });
+          }
+        });
+        // console.log(result)
+        // payload.image = result.url; // Add avatar property if image upload successful
+      }
 
       // console.log();
-      // const slug = this.slugify(payload?.name);
+      const slug = this.slugify(payload?.name);
 
-      // const product = await this.prisma.product.create({
-      //   data: {
-      //     name: payload.name,
-      //     description: payload.description,
-      //     originalprice: parseFloat(payload.originalprice),
-      //     discountprice: parseFloat(payload.discountprice),
-      //     slug: slug,
-      //     stock: payload.stock,
-      //     category_id: Number(payload.category_id),
-      //     subcategory_id: Number(payload.subcategory_id),
-      //     image: payload.image,
-      //     supplier_id: payload.supplier_id,
-      //     productImages: {
-      //       create: imagepayload,
-      //     },
-      //     variants: {
-      //       create: variants.map((variant: any) => ({
-      //         // quantity: variant.quantity,
-      //         varientValue: {
-      //           // create: variant.values
-      //           create: variant
-      //             .filter((value: any) => Number(value.attributeValueId))
-      //             .map((value: any) => ({
-      //               attributes: {
-      //                 connect: { id: Number(value.attributeId) },
-      //               },
-      //               attributeValue: {
-      //                 connect: { id: Number(value.attributeValueId) },
-      //               },
-      //             })),
-      //         },
-      //       })),
-      //     },
-      //   },
-      // });
+      const product = await this.prisma.product.create({
+        data: {
+          name: payload.name,
+          description: payload.description,
+          originalprice: parseFloat(payload.originalprice),
+          discountprice: parseFloat(payload.discountprice),
+          slug: slug,
+          stock: payload.stock,
+          category_id: Number(payload.category_id),
+          subcategory_id: Number(payload.subcategory_id),
+          image: payload.image,
+          supplier_id: payload.supplier_id,
+          productImages: {
+            create: imagepayload,
+          },
+        },
+      });
 
-      //save
-      // return res.status(201).json({
-      //   success: true,
-      //   message: 'product added successfully',
-      //   data: product,
-      // });
+      // save
+      return res.status(201).json({
+        success: true,
+        message: 'product added successfully',
+        data: product,
+      });
     } catch (error) {
       console.log(error);
 
@@ -359,6 +339,19 @@ export class ProductService {
           },
           image: true,
           supplier_id: true,
+          variants: {
+            include: {
+              varientValue: {
+                include: {
+                  attributes: {
+                    include: {
+                      attributevalues: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
         where: {
           id: Number(id),
@@ -402,6 +395,20 @@ export class ProductService {
             },
           },
           image: true,
+          variants: {
+            include: {
+              variantImages:true,
+              varientValue: {
+                include: {
+                  attributes: {
+                    include: {
+                      attributevalues: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
         where: {
           slug: {
@@ -417,6 +424,61 @@ export class ProductService {
         // data: {},
       });
     } catch (error) {
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ success: false, error: error.message });
+    }
+  }
+  //add varient.......
+  async addproductvarient(data: any, res: Response) {
+    try {
+      //check product is present or not
+      const product_id = Number(data?.product_id);
+      //check product exist or not.......
+      const isproductpresent = await this.prisma.product.findFirst({
+        where: {
+          id: product_id,
+        },
+      });
+      if (!isproductpresent) {
+        throw new Error('product is not found with this id');
+      }
+      //varients .........................................
+      const addeddata = await this.prisma.$transaction(async (prisma) => {
+        const createdVariants = [];
+
+        for (const variant of data?.variants) {
+          const createdVariant = await prisma.variant.create({
+            data: {
+              productId: product_id,
+              slug: variant.sku,
+              sku: variant.sku,
+              stock: Number(variant.stock),
+              originalprice: Number(variant.originalprice),
+              discountprice: Number(variant.discountprice),
+              varientValue: {
+                create: variant.attributes.map((attr: any) => ({
+                  attribute_id: Number(attr.attributeID),
+                  attributevalue_id: Number(attr.attributevalue_id),
+                })),
+              },
+            },
+            include: {
+              varientValue: true,
+            },
+          });
+
+          createdVariants.push(createdVariant);
+        }
+        return createdVariants;
+      });
+      return res.status(HttpStatus.OK).json({
+        success: true,
+        message: 'product varient added successfully',
+        data: addeddata,
+      });
+    } catch (error) {
+      console.log(error);
       return res
         .status(HttpStatus.BAD_REQUEST)
         .json({ success: false, error: error.message });

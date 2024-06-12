@@ -6,7 +6,7 @@ import { contains } from 'class-validator';
 const paginate: PaginateFunction = paginator({ perPage: 10 });
 @Injectable()
 export class CategoryService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
   async findManywithPagination(select: {}, where: any, page: number = 1) {
     return await paginate(
       this.prisma.category,
@@ -122,9 +122,9 @@ export class CategoryService {
         include: {
           attributes: {
             include: {
-              attributevalues: true
-            }
-          }
+              attributevalues: true,
+            },
+          },
         },
         where: {
           AND: [{ parent_id: null }, { category_status: true }],
@@ -696,16 +696,20 @@ export class CategoryService {
     try {
       const data = await this.prisma.category.findFirst({
         where: {
-          id:Number(id),
-          category_status:true,
-          parent_id:null
+          id: Number(id),
+          category_status: true,
+          parent_id: null,
         },
         include: {
           attributes: {
             include: {
-              attributevalues: true
-            }
-          }
+              attributevalues: {
+                include: {
+                  attributeunit: true,
+                },
+              },
+            },
+          },
         },
       });
       // console.log()
