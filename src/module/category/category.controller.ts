@@ -34,10 +34,16 @@ export class CategoryController {
     return await this.categoryService.getAllCategories( Number(page),
     searchTerm,res);
   }
+  @Get('/getvariationoption/:id')
+  async getvarientoption(@Param("id") id:number,@Res() res: Response) {
+    return await this.categoryService.getvarientoption(id,res);
+  }
+
   @Get('/allactiveCategory')
   async getAllActiveCategory(@Res() res: Response) {
     return await this.categoryService.getAllActiveCategories(res);
   }
+
   @Get('all/subcataegories')
   async getallsubcategories(@Res() res: Response) {
     return await this.categoryService.getallsubcategories(res);

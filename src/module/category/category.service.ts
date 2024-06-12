@@ -6,7 +6,7 @@ import { contains } from 'class-validator';
 const paginate: PaginateFunction = paginator({ perPage: 10 });
 @Injectable()
 export class CategoryService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
   async findManywithPagination(select: {}, where: any, page: number = 1) {
     return await paginate(
       this.prisma.category,
@@ -119,6 +119,13 @@ export class CategoryService {
   async getAllActiveCategories(res: Response) {
     try {
       const data = await this.prisma.category.findMany({
+        include: {
+          attributes: {
+            include: {
+              attributevalues: true
+            }
+          }
+        },
         where: {
           AND: [{ parent_id: null }, { category_status: true }],
         },
@@ -678,6 +685,36 @@ export class CategoryService {
           data,
         });
       }
+    } catch (error) {
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ success: false, message: error.message });
+    }
+  }
+
+  async getvarientoption(id: number, res: Response) {
+    try {
+      const data = await this.prisma.category.findFirst({
+        where: {
+          id:Number(id),
+          category_status:true,
+          parent_id:null
+        },
+        include: {
+          attributes: {
+            include: {
+              attributevalues: true
+            }
+          }
+        },
+      });
+      // console.log()
+
+      return res.status(HttpStatus.OK).json({
+        success: true,
+        message: 'all varientoption data fetch successfully.!',
+        data,
+      });
     } catch (error) {
       return res
         .status(HttpStatus.BAD_REQUEST)
