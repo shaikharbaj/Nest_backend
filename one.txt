@@ -228,3 +228,46 @@ varient =[
     [{attributeId: 1, attributeValueId: 1},{attributeId: 2, attributeValueId: 3},{attributeId: 3, attributeValueId: 4}],
     [{attributeId: 1, attributeValueId: 1},{attributeId: 2, attributeValueId: 3},{attributeId: 3, attributeValueId: 5}]
 ]
+
+
+
+
+
+{
+  main: [
+    {
+      fieldname: 'main',
+      originalname: '_original_imagzhspjy5g8nh3.jpg',
+      encoding: '7bit',
+      mimetype: 'image/jpeg',
+      buffer: <Buffer 89 50 4e 47 0d 0a 1a 0a 00 00 00 0d 49 48 44 52 00 00 01 46 00 00 01 a0 08 02 00 00 00 59 a8 59 38 00 00 20 00 49 44 41 54 78 9c ec bd 69 90 64 d7 75 ... 102897 more bytes>,
+      size: 102947
+    }
+  ],
+  file1: [
+    {
+      fieldname: 'file1',
+      originalname: '_original_imagzhspjy5g8nh3.jpg',
+      encoding: '7bit',
+      mimetype: 'image/jpeg',
+      buffer: <Buffer 89 50 4e 47 0d 0a 1a 0a 00 00 00 0d 49 48 44 52 00 00 01 46 00 00 01 a0 08 02 00 00 00 59 a8 59 38 00 00 20 00 49 44 41 54 78 9c ec bd 69 90 64 d7 75 ... 102897 more bytes>,
+      size: 102947
+    }
+  ],
+  file2: [
+    {
+      fieldname: 'file2',
+      originalname: 'avengers.png',
+      encoding: '7bit',
+      mimetype: 'image/png',
+      buffer: <Buffer 89 50 4e 47 0d 0a 1a 0a 00 00 00 0d 49 48 44 52 00 00 05 00 00 00 02 d0 08 02 00 00 00 40 1f 4a 01 00 00 00 09 70 48 59 73 00 00 0e c4 00 00 0e c4 01 ... 237041 more bytes>,
+      size: 237091
+    }
+  ]
+}
+
+
+let obj=[];
+for(let i=0;i<Object.keys(files)).length;i++){
+       obj.push(files[Object.keys(files)[i]][0])
+}

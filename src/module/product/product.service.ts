@@ -397,7 +397,7 @@ export class ProductService {
           image: true,
           variants: {
             include: {
-              variantImages:true,
+              variantImages: true,
               varientValue: {
                 include: {
                   attributes: {
@@ -476,6 +476,173 @@ export class ProductService {
         success: true,
         message: 'product varient added successfully',
         data: addeddata,
+      });
+    } catch (error) {
+      console.log(error);
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ success: false, error: error.message });
+    }
+  }
+
+  async get_product_varient_details(data: any, res: Response) {
+    try {
+      const product_id = Number(data?.product_id);
+      //check product exist or not.......
+      const isproductpresent = await this.prisma.product.findFirst({
+        where: {
+          id: product_id,
+        },
+      });
+      if (!isproductpresent) {
+        throw new Error('product is not found with this id');
+      }
+      //check product varient is present or not
+      const checkisvarientispresent = await this.prisma.variant.findFirst({
+        include: {
+          product: true,
+          variantImages: true,
+          varientValue: {
+            include: {
+              attributeValue: {
+                include: {
+                  attributes: true,
+                },
+              },
+            },
+          },
+        },
+        where: {
+          productId: data?.product_id,
+          id: Number(data?.varient_id),
+        },
+      });
+      if (!checkisvarientispresent) {
+        throw new Error('varient is not present with this id');
+      }
+      let attributeArr = checkisvarientispresent.varientValue.map(
+        (varient: any) => {
+          return [
+            varient.attributeValue.attributes.name,
+            varient.attributeValue.name,
+          ];
+        },
+      );
+      const arr = [];
+      attributeArr.forEach((ele: any) => {
+        arr.push(`${ele[0]}: ${ele[1]}`);
+      });
+      const attributeString = arr.join(', ');
+      checkisvarientispresent['attributes'] = attributeString;
+      //get product varient details..
+
+      return res.status(HttpStatus.OK).json({
+        success: true,
+        message: 'product varient data fetch  successfully',
+        data: checkisvarientispresent,
+      });
+    } catch (error) {
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ success: false, error: error.message });
+    }
+  }
+
+  async addproductvarientImage(
+    payload: any,
+    files: Array<Express.Multer.File>,
+    res: Response,
+  ) {
+    try {
+      const product_id = Number(payload?.product_id);
+      //check product exist or not.......
+      const isproductpresent = await this.prisma.product.findFirst({
+        where: {
+          id: product_id,
+        },
+      });
+      if (!isproductpresent) {
+        throw new Error('product is not found with this id');
+      }
+
+      //check product varient is present or not
+      const checkisvarientispresent = await this.prisma.variant.findFirst({
+        where: {
+          productId: Number(payload?.product_id),
+          id: Number(payload?.varient_id),
+        },
+      });
+      if (!checkisvarientispresent) {
+        throw new Error('varient is not present with this id');
+      }
+      let obj = [];
+      for (let i = 0; i < Object.keys(files).length; i++) {
+        obj.push(files[Object.keys(files)[i]][0]);
+      }
+
+      let imagepayload: any = [];
+      const arr = ['main', 'file1', 'file2', 'file3', 'file4', 'file5'];
+
+      for (let i = 0; i < arr.length; i++) {
+        console.log(obj[i]);
+        if (arr[i] === obj[i]?.fieldname) {
+          const result: any = await this.cloudinary.uploadImage(obj[i]);
+          if (obj[i].fieldname === 'main') {
+            imagepayload.push({
+              url: result.url,
+              isThumbnail: true,
+              img_order: i + 1,
+              variantId: Number(payload?.varient_id),
+            });
+          } else {
+            imagepayload.push({
+              url: result.url,
+              isThumbnail: false,
+              img_order: i + 1,
+              variantId: Number(payload?.varient_id),
+            });
+          }
+        } else {
+          imagepayload.push({
+            url: null,
+            isThumbnail: false,
+            img_order: i + 1,
+            variantId: Number(payload?.varient_id),
+          });
+        }
+      }
+
+      console.log(imagepayload);
+
+      // if (obj) {
+      //   const result: any = await this.cloudinary.uploadImages(obj);
+      //   result.forEach((i: any, index: number) => {
+      //     if (Number(index) === 0) {
+      //       imagepayload.push({
+      //         url: i.url,
+      //         isThumbnail: true,
+      //         variantId: Number(payload?.varient_id),
+      //       });
+      //     } else {
+      //       imagepayload.push({
+      //         url: i.url,
+      //         isThumbnail: false,
+      //         variantId: Number(payload?.varient_id),
+      //       });
+      //     }
+      //   });
+      //   // console.log(result)
+      //   // payload.image = result.url; // Add avatar property if image upload successful
+      // }
+
+      const updateimage = await this.prisma.variantImage.createMany({
+        data: imagepayload,
+      });
+
+      return res.status(HttpStatus.OK).json({
+        success: true,
+        message: 'varient image added successfully',
+        data: updateimage,
       });
     } catch (error) {
       console.log(error);

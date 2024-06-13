@@ -28,6 +28,10 @@ import { productModulePermission } from 'src/constants/permissions';
 export class ProductController {
   constructor(private readonly productservice: ProductService) {}
 
+  @Post('/get-product-variant-detail')
+  async get_product_varient(@Body() data: any, @Res() res: Response) {
+    return await this.productservice.get_product_varient_details(data, res);
+  }
   @UseGuards(JwtGuard)
   @Get('/supplier/all')
   async getAllProductsforSupplier(
@@ -60,6 +64,15 @@ export class ProductController {
   async getsingleproduct(@Param('name') name: string, @Res() res: Response) {
     return await this.productservice.loadsingleproduct(name, res);
   }
+
+  // @Post('/add-product-varient-image')
+  // async addproductvarient_images(
+  //   @UploadedFiles() files: Array<Express.Multer.File>,
+  //   @Body() data: any,
+  //   @Res() res: Response,
+  // ) {
+  //   return await this.productservice.addproductvarientImage(data, files, res);
+  // }
 
   @HasPermission(productModulePermission.ADD)
   @UseGuards(JwtGuard, RolesGuard)
@@ -101,6 +114,26 @@ export class ProductController {
   @Delete('delete/:id')
   async deleteProduct(@Param('id') id: number, @Res() res: Response) {
     return await this.productservice.deleteproduct(id, res);
+  }
+
+  
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'main' },
+      { name: 'file1' },
+      { name: 'file2' },
+      { name: 'file3' },
+      { name: 'file4' },
+      { name: 'file5' },
+    ]),
+  )
+  @Post("/add-product-varient-image")
+  async addproductvarientImage(
+    @Body() data: any,
+    @UploadedFiles() files: any,
+    @Res() res: Response,
+  ) {
+    return await this.productservice.addproductvarientImage(data, files, res);
   }
 
   @Post('/add-varient')
