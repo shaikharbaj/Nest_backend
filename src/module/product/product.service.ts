@@ -5,12 +5,20 @@ import { PrismaService } from '../prisma/prismaservice';
 import { CloudinaryService } from 'src/cloudinary.service';
 import { PaginateFunction, paginator } from '../prisma/paginator';
 const paginate: PaginateFunction = paginator({ perPage: 10 });
+
 @Injectable()
 export class ProductService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly cloudinary: CloudinaryService,
   ) {}
+
+  public async extractPublicId(url: string) {
+    const parts = url.split('/');
+    const filename = parts[parts.length - 1];
+    const publicId = filename.split('.')[0];
+    return publicId;
+  }
   public slugify(str: string) {
     return str
       .toLowerCase()
@@ -381,6 +389,7 @@ export class ProductService {
           originalprice: true,
           discountprice: true,
           stock: true,
+          slug: true,
           productImages: true,
           category: {
             select: {
@@ -555,6 +564,8 @@ export class ProductService {
   ) {
     try {
       const product_id = Number(payload?.product_id);
+      const remove_imgorder = JSON.parse(payload?.remove_imgorder);
+      console.log(remove_imgorder);
       //check product exist or not.......
       const isproductpresent = await this.prisma.product.findFirst({
         where: {
@@ -575,74 +586,190 @@ export class ProductService {
       if (!checkisvarientispresent) {
         throw new Error('varient is not present with this id');
       }
-      let obj = [];
-      for (let i = 0; i < Object.keys(files).length; i++) {
-        obj.push(files[Object.keys(files)[i]][0]);
-      }
 
-      let imagepayload: any = [];
-      const arr = ['main', 'file1', 'file2', 'file3', 'file4', 'file5'];
+      //update varient....
+      const update_varient = await this.prisma.variant.update({
+        where: {
+          id: Number(payload?.varient_id),
+        },
+        data: {
+          discountprice: Number(payload.discountprice),
+          originalprice: Number(payload.originalprice),
+          stock: Number(payload.stock),
+        },
+      });
 
-      for (let i = 0; i < arr.length; i++) {
-        console.log(obj[i]);
-        if (arr[i] === obj[i]?.fieldname) {
-          const result: any = await this.cloudinary.uploadImage(obj[i]);
-          if (obj[i].fieldname === 'main') {
-            imagepayload.push({
-              url: result.url,
-              isThumbnail: true,
-              img_order: i + 1,
-              variantId: Number(payload?.varient_id),
-            });
+      //check images is presenet or not...
+      const checkvarient_imagepresent = await this.prisma.variantImage.findMany(
+        {
+          where: {
+            variantId: checkisvarientispresent.id,
+          },
+        },
+      );
+      if (checkvarient_imagepresent.length > 0) {
+        //then update the images..........
+        // remove the previous uploaded image
+        const deleted_image_order = Object.values(remove_imgorder)
+          .filter((o: any) => o !== '')
+          .map((o) => Number(o));
+        for (let i = 0; i < deleted_image_order.length; i++) {
+          const imgurl = checkvarient_imagepresent.filter((j: any) => {
+            return Number(j?.img_order) == Number(deleted_image_order[i]);
+          });
+          //remove the images from cloudinary and add the images .......
+
+          const updatevarientimage = await this.prisma.variantImage.update({
+            where: {
+              id: Number(imgurl[0].id),
+            },
+            data: {
+              url: null,
+            },
+          });
+        }
+        if (files) {
+          let obj = [];
+          for (let i = 0; i < Object.keys(files).length; i++) {
+            obj.push(files[Object.keys(files)[i]][0]);
+          }
+          for (let i = 0; i < obj.length; i++) {
+            const imgurl = await this.cloudinary.uploadImage(obj[i]);
+            console.log(obj[i]['fieldname']);
+            if (obj[i].fieldname == 'main') {
+              const find = await this.prisma.variantImage.findFirst({
+                where: {
+                  img_order: 1,
+                },
+              });
+              await this.prisma.variantImage.update({
+                where: {
+                  id: find.id,
+                },
+                data: {
+                  url: imgurl?.url,
+                },
+              });
+            } else if (obj[i].fieldname == 'file1') {
+              const find = await this.prisma.variantImage.findFirst({
+                where: {
+                  img_order: 2,
+                },
+              });
+              await this.prisma.variantImage.update({
+                where: {
+                  id: find.id,
+                },
+                data: {
+                  url: imgurl?.url,
+                },
+              });
+            } else if (obj[i].fieldname == 'file2') {
+              const find = await this.prisma.variantImage.findFirst({
+                where: {
+                  img_order: 3,
+                },
+              });
+              await this.prisma.variantImage.update({
+                where: {
+                  id: find.id,
+                },
+                data: {
+                  url: imgurl?.url,
+                },
+              });
+            } else if (obj[i].fieldname == 'file3') {
+              const find = await this.prisma.variantImage.findFirst({
+                where: {
+                  img_order: 4,
+                },
+              });
+              await this.prisma.variantImage.update({
+                where: {
+                  id: find.id,
+                },
+                data: {
+                  url: imgurl?.url,
+                },
+              });
+            } else if (obj[i].fieldname == 'file4') {
+              const find = await this.prisma.variantImage.findFirst({
+                where: {
+                  img_order: 5,
+                },
+              });
+              await this.prisma.variantImage.update({
+                where: {
+                  id: find.id,
+                },
+                data: {
+                  url: imgurl?.url,
+                },
+              });
+            } else {
+              const find = await this.prisma.variantImage.findFirst({
+                where: {
+                  img_order: 6,
+                },
+              });
+              await this.prisma.variantImage.update({
+                where: {
+                  id: find.id,
+                },
+                data: {
+                  url: imgurl?.url,
+                },
+              });
+            }
+          }
+        } 
+       
+      } else {
+        let obj = [];
+        for (let i = 0; i < Object.keys(files).length; i++) {
+          obj.push(files[Object.keys(files)[i]][0]);
+        }
+
+        let imagepayload: any = [];
+        const arr = ['main', 'file1', 'file2', 'file3', 'file4', 'file5'];
+
+        for (let i = 0; i < arr.length; i++) {
+          console.log(obj[i]);
+          if (arr[i] === obj[i]?.fieldname) {
+            const result: any = await this.cloudinary.uploadImage(obj[i]);
+            if (obj[i].fieldname === 'main') {
+              imagepayload.push({
+                url: result.url,
+                isThumbnail: true,
+                img_order: i + 1,
+                variantId: Number(payload?.varient_id),
+              });
+            } else {
+              imagepayload.push({
+                url: result.url,
+                isThumbnail: false,
+                img_order: i + 1,
+                variantId: Number(payload?.varient_id),
+              });
+            }
           } else {
             imagepayload.push({
-              url: result.url,
+              url: null,
               isThumbnail: false,
               img_order: i + 1,
               variantId: Number(payload?.varient_id),
             });
           }
-        } else {
-          imagepayload.push({
-            url: null,
-            isThumbnail: false,
-            img_order: i + 1,
-            variantId: Number(payload?.varient_id),
-          });
         }
+
+        const updateimage = await this.prisma.variantImage.createMany({
+          data: imagepayload,
+        });
       }
-
-      console.log(imagepayload);
-
-      // if (obj) {
-      //   const result: any = await this.cloudinary.uploadImages(obj);
-      //   result.forEach((i: any, index: number) => {
-      //     if (Number(index) === 0) {
-      //       imagepayload.push({
-      //         url: i.url,
-      //         isThumbnail: true,
-      //         variantId: Number(payload?.varient_id),
-      //       });
-      //     } else {
-      //       imagepayload.push({
-      //         url: i.url,
-      //         isThumbnail: false,
-      //         variantId: Number(payload?.varient_id),
-      //       });
-      //     }
-      //   });
-      //   // console.log(result)
-      //   // payload.image = result.url; // Add avatar property if image upload successful
-      // }
-
-      const updateimage = await this.prisma.variantImage.createMany({
-        data: imagepayload,
-      });
-
       return res.status(HttpStatus.OK).json({
         success: true,
         message: 'varient image added successfully',
-        data: updateimage,
+        // data: updateimage,
       });
     } catch (error) {
       console.log(error);
