@@ -9,9 +9,6 @@ const paginate: PaginateFunction = paginator({ perPage: 10 });
 export class OrderService {
   constructor(private readonly prisma: PrismaService) {}
   async findManywithPagination(select: {}, where: any, page: number = 1) {
-    console.log(select);
-    console.log(where);
-    console.log(page);
     return await paginate(
       this.prisma.orderItem,
       {
@@ -132,7 +129,7 @@ export class OrderService {
     }
   }
 
-  async getorderbyID(auth: any, id: number, res: Response) {
+ async getorderbyID(auth: any, id: number, res: Response) {
     try {
       const order = await this.prisma.order.findFirst({
         select: {
@@ -582,7 +579,7 @@ export class OrderService {
           </div>
       </body>
       </html>`;
-      
+
       const browser = await puppeteer.launch({
         headless: true,
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
