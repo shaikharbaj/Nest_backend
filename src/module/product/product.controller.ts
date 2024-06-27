@@ -47,10 +47,19 @@ export class ProductController {
       res,
     );
   }
-  @Get('all')
+  @Get('/all')
   async getallproducts(@Query() payload: any, @Res() res: Response) {
     const { page, searchTerm }: { page: number; searchTerm: string } = payload;
     return await this.productservice.getallproducts(
+      Number(page),
+      searchTerm,
+      res,
+    );
+  }
+  @Get('/allproduct')
+  async getallproductswithvarient(@Query() payload: any, @Res() res: Response) {
+    const { page, searchTerm }: { page: number; searchTerm: string } = payload;
+    return await this.productservice.getallproductswithvarient(
       Number(page),
       searchTerm,
       res,

@@ -144,6 +144,12 @@ export class ProductService {
         discountprice: true,
         stock: true,
         productImages: true,
+        variants: {
+          include: {
+            varientValue: true,
+            variantImages: true,
+          },
+        },
         category: {
           select: {
             id: true,
@@ -173,6 +179,40 @@ export class ProductService {
       return res
         .status(HttpStatus.BAD_REQUEST)
         .json({ message: error.message, success: false });
+    }
+  }
+
+  async getallproductswithvarient(
+    page: number,
+    searchTerm: string,
+    res: Response,
+  ) {
+    try {
+      const data = await this.prisma.variant.findMany({
+        include: {
+          product: {
+            include: {
+              category: {
+                include: {
+                  attributes: {
+                    include: {
+                      attributevalues: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          variantImages: true,
+        },
+      });
+      return res
+        .status(HttpStatus.OK)
+        .json({ message: 'all products fetch successfully', data });
+    } catch (error) {
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ success: false, error: error.message });
     }
   }
   async addproduct(
@@ -722,8 +762,7 @@ export class ProductService {
               });
             }
           }
-        } 
-       
+        }
       } else {
         let obj = [];
         for (let i = 0; i < Object.keys(files).length; i++) {
