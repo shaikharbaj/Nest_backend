@@ -74,6 +74,11 @@ export class ProductController {
     return await this.productservice.loadsingleproduct(name, res);
   }
 
+  @Get('/productdetails/:slug')
+  async getproductDetails(@Param('slug') slug: any,@Res() res:Response) {
+    return await this.productservice.getproductDetails(slug,res);
+  }
+
   // @Post('/add-product-varient-image')
   // async addproductvarient_images(
   //   @UploadedFiles() files: Array<Express.Multer.File>,
@@ -125,7 +130,6 @@ export class ProductController {
     return await this.productservice.deleteproduct(id, res);
   }
 
-  
   @UseInterceptors(
     FileFieldsInterceptor([
       { name: 'main' },
@@ -136,7 +140,7 @@ export class ProductController {
       { name: 'file5' },
     ]),
   )
-  @Post("/add-product-varient-image")
+  @Post('/add-product-varient-image')
   async addproductvarientImage(
     @Body() data: any,
     @UploadedFiles() files: any,

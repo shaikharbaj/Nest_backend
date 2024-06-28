@@ -204,6 +204,15 @@ export class ProductService {
             },
           },
           variantImages: true,
+          varientValue: {
+            include: {
+              attributeValue: {
+                include: {
+                  attributes: true,
+                },
+              },
+            },
+          },
         },
       });
       return res
@@ -812,6 +821,43 @@ export class ProductService {
       });
     } catch (error) {
       console.log(error);
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ success: false, error: error.message });
+    }
+  }
+
+  async getproductDetails(slug: string, res: Response) {
+    try {
+      const data = await this.prisma.variant.findFirst({
+        include: {
+          varientValue: {
+            include: {
+              attributeValue: {
+                include: {
+                  attributes: true,
+                },
+              },
+            },
+            orderBy: {
+              attributeValue: {
+                attributes: {
+                  name: 'asc',
+                },
+              },
+            },
+          }
+        },
+        where: {
+          slug: slug,
+        },
+      });
+      return res.status(HttpStatus.OK).json({
+        success: true,
+        message: 'product data fetch successfully',
+        data,
+      });
+    } catch (error) {
       return res
         .status(HttpStatus.BAD_REQUEST)
         .json({ success: false, error: error.message });
