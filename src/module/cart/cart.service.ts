@@ -33,7 +33,7 @@ export class CartService {
           createdAt: 'desc',
         },
       });
-      console.log(auth);
+  
       return res.status(HttpStatus.OK).json({
         success: true,
         message: 'cart item fetch successfully',

@@ -831,6 +831,7 @@ export class ProductService {
     try {
       const data = await this.prisma.variant.findFirst({
         include: {
+          variantImages: true,
           varientValue: {
             include: {
               attributeValue: {
@@ -846,16 +847,168 @@ export class ProductService {
                 },
               },
             },
-          }
+          },
+          product: {
+            include: {
+              category: true,
+            },
+          },
         },
         where: {
           slug: slug,
         },
       });
+      if (!data) {
+        throw new Error('No product found');
+      }
+
+      const usedAttributes = await this.prisma.attributes.findMany({
+        where: {
+          attributevalues: {
+            some: {
+              variantValue: {
+                some: {
+                  variant: {
+                    product: {
+                      id: +data?.productId,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        include: {
+          attributevalues: {
+            where: {
+              variantValue: {
+                some: {
+                  variant: {
+                    product: {
+                      id: +data?.productId,
+                    },
+                  },
+                },
+              },
+            },
+            include: {
+              attributeunit: true,
+              variantValue: {
+                include: {
+                  variant: {
+                    include: {
+                      product: true, // Include the product details associated with the variant
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        orderBy: {
+          name: 'asc', // Order attributes by name in ascending order
+        },
+      });
+
       return res.status(HttpStatus.OK).json({
         success: true,
         message: 'product data fetch successfully',
-        data,
+        data: { ...data, varient: usedAttributes },
+      });
+    } catch (error) {
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ success: false, error: error.message });
+    }
+  }
+
+  async getproductvarientDetails(id: number, options: any, res: Response) {
+    try {
+      const data = await this.prisma.variant.findFirst({
+        include: {
+          variantImages: true,
+          varientValue: {
+            include: {
+              attributeValue: {
+                include: {
+                  attributes: true,
+                },
+              },
+            },
+            orderBy: {
+              attributeValue: {
+                attributes: {
+                  name: 'asc',
+                },
+              },
+            },
+          },
+          product: {
+            include: {
+              category: true,
+            },
+          },
+        },
+        where: {
+          productId: +id,
+        },
+      });
+      if (!data) {
+        throw new Error('No product found');
+      }
+
+      const usedAttributes = await this.prisma.attributes.findMany({
+        where: {
+          attributevalues: {
+            some: {
+              variantValue: {
+                some: {
+                  variant: {
+                    product: {
+                      id: +data?.productId,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        include: {
+          attributevalues: {
+            where: {
+              variantValue: {
+                some: {
+                  variant: {
+                    product: {
+                      id: +data?.productId,
+                    },
+                  },
+                },
+              },
+            },
+            include: {
+              attributeunit: true,
+              variantValue: {
+                include: {
+                  variant: {
+                    include: {
+                      product: true, // Include the product details associated with the variant
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        orderBy: {
+          name: 'asc', // Order attributes by name in ascending order
+        },
+      });
+
+      return res.status(HttpStatus.OK).json({
+        success: true,
+        message: 'product data fetch successfully',
+        data: { ...data, varient: usedAttributes },
       });
     } catch (error) {
       return res

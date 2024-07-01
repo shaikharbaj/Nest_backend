@@ -75,8 +75,13 @@ export class ProductController {
   }
 
   @Get('/productdetails/:slug')
-  async getproductDetails(@Param('slug') slug: any,@Res() res:Response) {
-    return await this.productservice.getproductDetails(slug,res);
+  async getproductDetails(@Param('slug') slug: any, @Res() res: Response) {
+    return await this.productservice.getproductDetails(slug, res);
+  }
+
+  @Post('/productdetails/:id')
+  async getproductDetail(@Param('id') id: any,@Body() data:any, @Res() res: Response) {
+    return await this.productservice.getproductvarientDetails(id,data?.options, res);
   }
 
   // @Post('/add-product-varient-image')
