@@ -11,7 +11,7 @@ export class ProductService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly cloudinary: CloudinaryService,
-  ) {}
+  ) { }
 
   public async extractPublicId(url: string) {
     const parts = url.split('/');
@@ -70,6 +70,7 @@ export class ProductService {
         discountprice: true,
         category_id: true,
         subcategory_id: true,
+        slug:true,
         image: true,
         stock: true,
         productImages: true,
@@ -924,6 +925,18 @@ export class ProductService {
 
   async getproductvarientDetails(id: number, options: any, res: Response) {
     try {
+
+      const filterConditions = Object.keys(options).map(key => ({
+        attribute: {
+          name: key,
+        },
+        attributeValue: {
+          name: options[key],
+        },
+      }));
+
+      console.log(filterConditions);
+
       const data = await this.prisma.variant.findFirst({
         include: {
           variantImages: true,
@@ -951,6 +964,14 @@ export class ProductService {
         },
         where: {
           productId: +id,
+          varientValue: {
+            every: {
+              OR: filterConditions.map(condition => ({
+                attributes: condition.attribute,
+                attributeValue: condition.attributeValue,
+              })),
+            },
+          },
         },
       });
       if (!data) {
@@ -1011,6 +1032,7 @@ export class ProductService {
         data: { ...data, varient: usedAttributes },
       });
     } catch (error) {
+      console.log(error);
       return res
         .status(HttpStatus.BAD_REQUEST)
         .json({ success: false, error: error.message });
